@@ -1,0 +1,9 @@
+{
+	"name": "BERIK POS — жеке кабинет",
+	"short_name": "BERIK",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#f4f6f5",
+	"theme_color": "#0EA768",
+	"icons": [{ "src": "/assets/img/logo/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }]
+}
