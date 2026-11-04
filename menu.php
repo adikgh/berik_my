@@ -164,15 +164,17 @@ head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css
 <?php if (!$cats): ?>
 	<p class="empty">Мәзір бос.</p>
 <?php else: ?>
+	<div class="mn_find"><input type="search" id="mn_q" placeholder="Мәзірден іздеу" autocomplete="off" aria-label="Мәзірден іздеу"></div>
 	<nav class="mn_cats" id="cats">
 		<?php foreach ($cats as $id => $k): ?><a href="#cat<?= $id ?>"><?= e($k['name']) ?></a><?php endforeach; ?>
 	</nav>
+	<p class="empty mn_none" hidden>Ештеңе табылмады.</p>
 	<?php foreach ($cats as $id => $k): ?>
 		<section class="mn_sec" id="cat<?= $id ?>">
 			<h2><?= e($k['name']) ?></h2>
 			<div class="mn_grid">
 				<?php foreach ($k['items'] as $i): ?>
-					<div class="mn_it" data-id="<?= $i['id'] ?>" data-name="<?= e($i['name']) ?>" data-price="<?= $i['price'] ?>">
+					<div class="mn_it" data-id="<?= $i['id'] ?>" data-cat="<?= $id ?>" data-name="<?= e($i['name']) ?>" data-price="<?= $i['price'] ?>" data-desc="<?= e($i['desc']) ?>" data-img="<?= e($i['img']) ?>">
 						<?php if ($i['img']): ?><img src="<?= e($i['img']) ?>" alt="" loading="lazy" onerror="this.remove()"><?php endif; ?>
 						<div class="mn_it_b">
 							<b><?= e($i['name']) ?></b>
@@ -191,6 +193,25 @@ head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css
 	<?php endforeach; ?>
 <?php endif; ?>
 
+<?php if ($cats): ?>
+<div class="mn_sheet mn_card" hidden>
+	<div class="mn_box">
+		<button type="button" class="mn_x mn_close" aria-label="Жабу">✕</button>
+		<img class="mn_c_img" alt="" hidden>
+		<h2 class="mn_c_name"></h2>
+		<p class="mn_c_desc"></p>
+		<p class="mn_c_pr"></p>
+		<div class="mn_up" hidden><h3>Тағы қосасыз ба?</h3><div class="mn_up_list"></div></div>
+		<?php if ($types): ?>
+			<div class="mn_c_foot">
+				<span class="mn_q mn_c_q"><button type="button" class="mn_c_minus" aria-label="Азайту">−</button><i>1</i><button type="button" class="mn_c_plus" aria-label="Көбейту">+</button></span>
+				<button type="button" class="mn_c_add">Қосу</button>
+			</div>
+		<?php endif; ?>
+	</div>
+</div>
+<?php endif; ?>
+
 <?php if ($types): ?>
 <button type="button" class="mn_bar" hidden><span>Себет · <b class="mn_cnt">0</b></span><b class="mn_sum">0 ₸</b></button>
 
@@ -198,6 +219,7 @@ head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css
 	<div class="mn_box">
 		<div class="row"><h2>Себет</h2><button type="button" class="link mn_close" aria-label="Жабу">✕</button></div>
 		<ul class="items mn_lines"></ul>
+		<div class="mn_up mn_up_cart" hidden><h3>Тағы қосасыз ба?</h3><div class="mn_up_list"></div></div>
 		<form class="mn_form">
 			<?php if (count($types) > 1): ?>
 				<div class="chips mn_types">
@@ -257,6 +279,8 @@ head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css
 		<p><a class="btn mn_link" href="#">Тапсырысты көру</a></p>
 	</div>
 </div>
+<?php endif; ?>
+<?php if ($cats): ?>
 <script>window.MENU = <?= json_encode($cfg, JSON_UNESCAPED_UNICODE) ?>;</script>
 <script src="/assets/js/menu.js?v=<?= @filemtime(__DIR__ . '/assets/js/menu.js') ?>"></script>
 <?php endif; ?>

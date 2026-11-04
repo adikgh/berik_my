@@ -1,4 +1,4 @@
-// Menu cart: kept in this browser per company, sent to /menu.php?send=1
+// Menu: dish card, search, upsell and the cart (kept in this browser per company, sent to /menu.php?send=1)
 (function () {
 	var M = window.MENU, key = 'cart_' + M.cid, cart = {};
 	try { cart = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (e) { cart = {}; }
@@ -8,11 +8,16 @@
 	var money = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' ₸'; };
 	var esc = function (s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
 
-	var items = {};
-	$$('.mn_it').forEach(function (el) { items[el.dataset.id] = { el: el, name: el.dataset.name, price: +el.dataset.price }; });
+	var items = {}, order = [];
+	$$('.mn_it').forEach(function (el) {
+		var d = el.dataset;
+		items[d.id] = { id: d.id, el: el, cat: d.cat, name: d.name, price: +d.price, desc: d.desc || '', img: d.img || '' };
+		order.push(d.id);
+	});
 	Object.keys(cart).forEach(function (id) { if (!items[id] || !(cart[id] > 0)) delete cart[id]; });
 
-	var bar = $('.mn_bar'), sheet = $('.mn_sheet:not(.mn_done)'), done = $('.mn_done'), form = $('.mn_form');
+	var bar = $('.mn_bar'), sheet = $('.mn_sheet:not(.mn_done):not(.mn_card)'), done = $('.mn_done'), form = $('.mn_form');
+	var card = $('.mn_card'), canBuy = !!form;
 
 	function save() { try { localStorage.setItem(key, JSON.stringify(cart)); } catch (e) {} }
 	function type() { var t = form.elements.type; return +(t.value || (t[0] && t.value)); }
@@ -25,6 +30,31 @@
 		return o && o.dataset.price ? +o.dataset.price : 0;
 	}
 
+	// "Add something else?": cheaper dishes from other categories, one per category in turn
+	function upsell(skip, n, cap) {
+		var by = {}, cats = [];
+		order.forEach(function (id) {
+			var it = items[id];
+			if (cart[id] || skip[it.cat] === true || (cap && it.price > cap)) return;
+			if (!by[it.cat]) { by[it.cat] = []; cats.push(it.cat); }
+			by[it.cat].push(it);
+		});
+		cats.forEach(function (c) { by[c].sort(function (a, b) { return a.price - b.price; }); });
+		var out = [];
+		for (var i = 0; out.length < n && cats.some(function (c) { return by[c][i]; }); i++)
+			cats.forEach(function (c) { if (by[c][i] && out.length < n) out.push(by[c][i]); });
+		return out;
+	}
+	function drawUp(box, list) {
+		if (!box) return;
+		box.hidden = !canBuy || !list.length;
+		$('.mn_up_list', box).innerHTML = list.map(function (it) {
+			return '<div class="mn_up_it" data-id="' + it.id + '">' +
+				(it.img ? '<img src="' + esc(it.img) + '" alt="" loading="lazy" onerror="this.remove()">' : '') +
+				'<b>' + esc(it.name) + '</b><button type="button" class="mn_up_add">+ ' + money(it.price) + '</button></div>';
+		}).join('');
+	}
+
 	function draw() {
 		var n = 0;
 		Object.keys(items).forEach(function (id) {
@@ -33,16 +63,22 @@
 			it.classList.toggle('on', q > 0);
 			var i = $('.mn_q i', it); if (i) i.textContent = q;
 		});
+		if (!canBuy) return;
 		bar.hidden = !n;
 		$('.mn_cnt', bar).textContent = n;
 		$('.mn_sum', bar).textContent = money(food());
 
 		$('.mn_lines').innerHTML = Object.keys(cart).map(function (id) {
 			var it = items[id];
-			return '<li data-id="' + id + '"><span>' + esc(it.name) + ' <small>× ' + cart[id] + '</small></span>' +
+			return '<li data-id="' + id + '"><span>' + esc(it.name) + '</span>' +
 				'<span class="mn_q"><button type="button" class="mn_minus">−</button><i>' + cart[id] + '</i><button type="button" class="mn_plus">+</button></span>' +
 				'<span>' + money(it.price * cart[id]) + '</span></li>';
 		}).join('') || '<li class="muted">Себет бос</li>';
+		if (!sheet.hidden) {
+			var inCats = {};
+			Object.keys(cart).forEach(function (id) { inCats[items[id].cat] = true; });
+			drawUp($('.mn_up_cart'), upsell(inCats, 6, 2500));
+		}
 
 		var d = type() === 1;
 		$$('.mn_dlv', form).forEach(function (el) { el.hidden = !d; });
@@ -60,45 +96,125 @@
 		save(); draw();
 	}
 
+	// Dish card; its link is ?p=<id> so it can be shared
+	var cur = null, cq = 1, pushed = false;
+	function url(id) {
+		var u = new URL(location.href);
+		if (id) u.searchParams.set('p', id); else u.searchParams.delete('p');
+		return u.pathname + u.search + u.hash;
+	}
+	function drawCard() {
+		if (!canBuy || !cur) return;
+		$('.mn_c_q i', card).textContent = cq;
+		$('.mn_c_add', card).textContent = (cart[cur.id] ? 'Тағы қосу · ' : 'Қосу · ') + money(cur.price * cq);
+	}
+	function openCard(id, push) {
+		cur = items[id]; if (!cur) return;
+		cq = 1;
+		var img = $('.mn_c_img', card);
+		img.hidden = !cur.img;
+		if (cur.img) img.src = cur.img; else img.removeAttribute('src');
+		$('.mn_c_name', card).textContent = cur.name;
+		$('.mn_c_desc', card).textContent = cur.desc;
+		$('.mn_c_desc', card).hidden = !cur.desc;
+		$('.mn_c_pr', card).textContent = money(cur.price);
+		var skip = {}; skip[cur.cat] = true;
+		drawUp($('.mn_up', card), upsell(skip, 6, Math.max(1500, Math.round(cur.price / 2))));
+		drawCard();
+		card.hidden = false;
+		$('.mn_box', card).scrollTop = 0;
+		document.body.classList.add('mn_lock');
+		if (push !== false) { history.pushState({ p: id }, '', url(id)); pushed = true; }
+	}
+	function closeCard(back) {
+		if (card.hidden) return;
+		card.hidden = true; cur = null;
+		if (!sheet || sheet.hidden) document.body.classList.remove('mn_lock');
+		if (back === false) pushed = false;
+		else if (pushed) { pushed = false; history.back(); }
+		else history.replaceState(null, '', url(0));
+	}
+	window.addEventListener('popstate', function () {
+		var p = new URL(location.href).searchParams.get('p');
+		if (p && items[p]) openCard(p, false); else closeCard(false);
+	});
+	card.addEventListener('click', function (e) {
+		if (e.target === card || e.target.closest('.mn_x')) { closeCard(); return; }
+		if (e.target.closest('.mn_c_plus')) { cq = Math.min(99, cq + 1); drawCard(); return; }
+		if (e.target.closest('.mn_c_minus')) { cq = Math.max(1, cq - 1); drawCard(); return; }
+		if (e.target.closest('.mn_c_add')) { add(cur.id, cq); closeCard(); }
+	});
+
 	document.addEventListener('click', function (e) {
-		var b = e.target.closest('.mn_plus, .mn_minus');
-		if (b) {
-			var row = b.closest('[data-id]');
-			add(row.dataset.id, b.classList.contains('mn_plus') ? 1 : -1);
+		var u = e.target.closest('.mn_up_it');
+		if (u) {
+			if (e.target.closest('.mn_up_add')) {
+				add(u.dataset.id, 1);
+				u.classList.add('ok');
+				var b = $('.mn_up_add', u); b.textContent = '✓ Қосылды'; b.disabled = true;
+			} else if (!card.contains(u)) { openCard(u.dataset.id); }
+			return;
+		}
+		if (card.contains(e.target)) return;
+		var b2 = e.target.closest('.mn_plus, .mn_minus');
+		if (b2) {
+			var row = b2.closest('[data-id]');
+			add(row.dataset.id, b2.classList.contains('mn_plus') ? 1 : -1);
 			return;
 		}
 		var it = e.target.closest('.mn_it');
-		if (it && !it.classList.contains('on')) add(it.dataset.id, 1); // tap on a dish adds it
+		if (it) openCard(it.dataset.id); // tap on a dish opens its card
 	});
 
-	function open() { sheet.hidden = false; document.body.classList.add('mn_lock'); }
-	function close() { sheet.hidden = true; document.body.classList.remove('mn_lock'); }
-	bar.addEventListener('click', open);
-	$('.mn_close').addEventListener('click', close);
-	sheet.addEventListener('click', function (e) { if (e.target === sheet) close(); });
-	form.addEventListener('change', draw);
-
-	form.addEventListener('submit', function (e) {
-		e.preventDefault();
-		var err = $('.mn_err'), btn = $('button[type=submit]', form);
-		err.hidden = true;
-		if (type() === 1 && M.min && food() < M.min) { err.textContent = 'Жеткізу үшін ең аз сома: ' + money(M.min); err.hidden = false; return; }
-		var d = new FormData(form);
-		d.append('csrf', M.csrf);
-		Object.keys(cart).forEach(function (id) { d.append('items[' + id + ']', cart[id]); });
-		btn.disabled = true;
-		fetch('/menu.php?send=1', { method: 'POST', body: d, credentials: 'same-origin' })
-			.then(function (r) { return r.json(); })
-			.then(function (r) {
-				btn.disabled = false;
-				if (!r.ok) { err.textContent = r.msg || 'Қате'; err.hidden = false; return; }
-				cart = {}; save(); draw(); close();
-				$('.mn_num', done).textContent = '№' + r.num;
-				$('.mn_link', done).href = r.url;
-				done.hidden = false;
-			})
-			.catch(function () { btn.disabled = false; err.textContent = 'Байланыс қатесі, қайта көріңіз.'; err.hidden = false; });
+	// Search by name and description
+	var q = $('#mn_q');
+	if (q) q.addEventListener('input', function () {
+		var s = q.value.trim().toLowerCase(), any = false;
+		$$('.mn_sec').forEach(function (sec) {
+			var vis = 0;
+			$$('.mn_it', sec).forEach(function (el) {
+				var it = items[el.dataset.id];
+				var ok = !s || (it.name + ' ' + it.desc).toLowerCase().indexOf(s) >= 0;
+				el.hidden = !ok; if (ok) vis++;
+			});
+			sec.hidden = !vis; if (vis) any = true;
+		});
+		$('#cats').hidden = !!s;
+		$('.mn_none').hidden = any;
 	});
+
+	if (canBuy) {
+		var open = function () {
+			sheet.hidden = false; document.body.classList.add('mn_lock'); draw();
+		};
+		var close = function () { sheet.hidden = true; document.body.classList.remove('mn_lock'); };
+		bar.addEventListener('click', open);
+		$('.mn_close', sheet).addEventListener('click', close);
+		sheet.addEventListener('click', function (e) { if (e.target === sheet) close(); });
+		form.addEventListener('change', draw);
+
+		form.addEventListener('submit', function (e) {
+			e.preventDefault();
+			var err = $('.mn_err'), btn = $('button[type=submit]', form);
+			err.hidden = true;
+			if (type() === 1 && M.min && food() < M.min) { err.textContent = 'Жеткізу үшін ең аз сома: ' + money(M.min); err.hidden = false; return; }
+			var d = new FormData(form);
+			d.append('csrf', M.csrf);
+			Object.keys(cart).forEach(function (id) { d.append('items[' + id + ']', cart[id]); });
+			btn.disabled = true;
+			fetch('/menu.php?send=1', { method: 'POST', body: d, credentials: 'same-origin' })
+				.then(function (r) { return r.json(); })
+				.then(function (r) {
+					btn.disabled = false;
+					if (!r.ok) { err.textContent = r.msg || 'Қате'; err.hidden = false; return; }
+					cart = {}; save(); draw(); close();
+					$('.mn_num', done).textContent = '№' + r.num;
+					$('.mn_link', done).href = r.url;
+					done.hidden = false;
+				})
+				.catch(function () { btn.disabled = false; err.textContent = 'Байланыс қатесі, қайта көріңіз.'; err.hidden = false; });
+		});
+	}
 
 	// Category chips follow the scroll
 	var chips = $$('.mn_cats a');
@@ -117,4 +233,6 @@
 	}
 
 	draw();
+	var p0 = new URL(location.href).searchParams.get('p');
+	if (p0 && items[p0]) openCard(p0, false);
 })();
