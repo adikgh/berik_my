@@ -2,7 +2,12 @@
 require_once __DIR__ . '/config/app.php';
 require_once __DIR__ . '/config/layout.php';
 
+// Came by a company link (?c=<code>): open that company's menu
+if (isset($_GET['c']) && current_company()) { header('Location: /menu.php'); exit; }
+
 $me = need_login();
+$mc = current_company();
+if ($mc && !menu_set((int)$mc['id'])['is_on']) $mc = null;
 $st = status_words('kz');
 $ids = my_clients((int)$me['id']);
 $ok = OK_SQL;
@@ -56,6 +61,10 @@ head('Басты', 'home');
 ?>
 <h1>Сәлем, <?= e($me['name']) ?>!</h1>
 <p class="muted">+7 <?= e($me['phone']) ?></p>
+
+<?php if ($mc): ?>
+	<a class="card go-menu" href="/menu.php"><span>🍽 <b><?= e($mc['name']) ?></b> мәзірі</span><span class="more">Тапсырыс беру →</span></a>
+<?php endif; ?>
 
 <?php if ($active): ?>
 	<h2>Қазір орындалуда</h2>

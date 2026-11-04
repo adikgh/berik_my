@@ -118,3 +118,4 @@ button.ghost { background: var(--card); color: var(--text); border: 1px solid va
 .dots span.on { background: var(--green); border: 2px solid var(--green); color: #fff; }
 .dots span.gift { border-color: #f59f00; background: #fff7e6; font-size: 16px; }
 .stamp p { margin: 0; font-size: 15px; }
+.go-menu { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 16px; border-color: var(--green); }

@@ -187,3 +187,14 @@ function status_words(string $lang = 'kz'): array {
 	foreach ($rows as $r) $out[(int)$r['id']] = $r;
 	return $out;
 }
+
+// Menu and ordering (online / QR menu)
+require_once __DIR__ . '/shop.php';
+remember_company();
+
+// The QR host shows only the menu
+if (qr_mode() && basename((string)($_SERVER['SCRIPT_NAME'] ?? '')) !== 'menu.php') {
+	$qs = $_SERVER['QUERY_STRING'] ?? '';
+	header('Location: /menu.php' . ($qs !== '' ? '?' . $qs : ''));
+	exit;
+}
