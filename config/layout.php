@@ -15,17 +15,17 @@ function head(string $title, string $tab = '', string $extra = '', string $brand
 <link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
-<link rel="stylesheet" href="/assets/css/main.css?v=4">
+<link rel="stylesheet" href="/assets/css/main.css?v=5">
 <?= $extra ?>
 </head>
 <body<?= $qr ? ' class="qr"' : ($tab === 'sign' ? ' class="sign"' : ($me ? ' class="in"' : '')) ?>>
-<?php if ($tab !== 'sign'): ?>
+<?php if ($tab !== 'sign' && ($qr || !$me)): // signed-in cabinet has no top bar; Шығу is in Профиль ?>
 <header class="top">
 	<?php if ($qr): ?>
 		<a class="brand" href="/menu.php"><img src="/assets/img/logo/berik-mark.svg" alt="" width="32" height="32"><span class="cmp"><?= e($brand !== '' ? $brand : 'Мәзір') ?></span></a>
 	<?php else: ?>
 		<a class="brand" href="/"><img src="/assets/img/logo/berik-mark.svg" alt="" width="32" height="32"><span>BERIK <b>POS</b></span></a>
-		<?php if ($me): ?><a class="out" href="/exit.php">Шығу</a><?php elseif ($tab === 'menu'): ?><a class="out" href="/login.php">Кіру</a><?php endif; ?>
+		<?php if ($tab === 'menu'): ?><a class="out" href="/login.php">Кіру</a><?php endif; ?>
 	<?php endif; ?>
 </header>
 <?php endif; ?>

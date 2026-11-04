@@ -105,4 +105,5 @@ head($first ? 'Анкета' : 'Профиль', 'profile');
 	<?php endif; ?>
 </div>
 <?php endif; ?>
+<a class="logout" href="/exit.php"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/></svg>Шығу</a>
 <?php foot();

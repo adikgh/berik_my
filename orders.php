@@ -53,29 +53,34 @@ head('Тапсырыстарым', 'orders');
 ?>
 <h1>Тапсырыстарым</h1>
 
-<form class="filter" method="get">
-	<?php if (count($companies) > 1): ?>
-		<select name="c" onchange="this.form.submit()">
-			<option value="">Барлық мекеме</option>
-			<?php foreach ($companies as $c): ?><option value="<?= (int)$c['id'] ?>"<?= $f['c'] === (int)$c['id'] ? ' selected' : '' ?>><?= e($c['name']) ?></option><?php endforeach; ?>
-		</select>
-	<?php endif; ?>
-	<select name="p" onchange="this.form.submit()">
-		<?php foreach (['' => 'Барлық уақыт', 'month' => 'Осы ай', '3m' => 'Соңғы 3 ай', 'year' => 'Осы жыл'] as $k => $v): ?>
-			<option value="<?= $k ?>"<?= $f['p'] === $k ? ' selected' : '' ?>><?= $v ?></option>
+<div class="of">
+	<form class="of-top" method="get">
+		<label class="of-search">
+			<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+			<input type="search" name="q" value="<?= e($f['q']) ?>" inputmode="numeric" placeholder="Тапсырыс нөмірі">
+		</label>
+		<?php if (count($companies) > 1): ?>
+			<select name="c" class="of-sel" onchange="this.form.submit()">
+				<option value="">Барлық мекеме</option>
+				<?php foreach ($companies as $c): ?><option value="<?= (int)$c['id'] ?>"<?= $f['c'] === (int)$c['id'] ? ' selected' : '' ?>><?= e($c['name']) ?></option><?php endforeach; ?>
+			</select>
+		<?php endif; ?>
+		<?php foreach (['s', 'p'] as $k): if ($f[$k]): ?><input type="hidden" name="<?= $k ?>" value="<?= e($f[$k]) ?>"><?php endif; endforeach; ?>
+	</form>
+	<div class="of-seg">
+		<?php foreach (['' => 'Барлығы', 'month' => 'Осы ай', '3m' => '3 ай', 'year' => 'Осы жыл'] as $k => $v): ?>
+			<a href="<?= e(url($f, ['p' => $k, 'page' => 0])) ?>"<?= $f['p'] === $k ? ' class="on"' : '' ?>><?= $v ?></a>
 		<?php endforeach; ?>
-	</select>
-	<input type="search" name="q" value="<?= e($f['q']) ?>" inputmode="numeric" placeholder="№ іздеу">
-	<?php if ($f['s']): ?><input type="hidden" name="s" value="<?= e($f['s']) ?>"><?php endif; ?>
-</form>
-
-<div class="chips">
-	<?php foreach (['' => 'Барлығы', 'active' => 'Орындалуда', 'done' => 'Аяқталған', 'refused' => 'Бас тартылған'] as $k => $v): ?>
-		<a href="<?= e(url($f, ['s' => $k])) ?>"<?= $f['s'] === $k ? ' class="on"' : '' ?>><?= $v ?></a>
-	<?php endforeach; ?>
+	</div>
 </div>
 
-<p class="muted small"><?= (int)$tot['n'] ?> тапсырыс · <?= money((int)$tot['s']) ?></p>
+<nav class="of-tabs">
+	<?php foreach (['' => 'Барлығы', 'active' => 'Орындалуда', 'done' => 'Аяқталған', 'refused' => 'Бас тартылған'] as $k => $v): ?>
+		<a href="<?= e(url($f, ['s' => $k, 'page' => 0])) ?>"<?= $f['s'] === $k ? ' class="on"' : '' ?>><?= $v ?></a>
+	<?php endforeach; ?>
+</nav>
+
+<div class="of-sum"><span><?= (int)$tot['n'] ?> тапсырыс</span><b><?= money((int)$tot['s']) ?></b></div>
 
 <?php if (!$orders): ?>
 	<p class="empty">Тапсырыс табылмады.</p>

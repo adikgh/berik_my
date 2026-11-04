@@ -56,11 +56,11 @@ head('Мекенжайларым', 'addr');
 	<ul class="card list addr">
 		<?php foreach ($list as $a): ?>
 			<li>
-				<span>📍 <?= e($a) ?></span>
+				<span class="addr-t"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg><?= e($a) ?></span>
 				<form method="post" onsubmit="return confirm('Өшіру керек пе?')">
 					<input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
 					<input type="hidden" name="del" value="<?= e($a) ?>">
-					<button type="submit" class="link" aria-label="Өшіру">✕</button>
+					<button type="submit" class="addr-del" aria-label="Өшіру"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
 				</form>
 			</li>
 		<?php endforeach; ?>
@@ -70,12 +70,13 @@ head('Мекенжайларым', 'addr');
 <?php endif; ?>
 
 <?php if ($rows): ?>
-<form method="post" class="card">
+<form method="post" class="card addr-new">
 	<input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
-	<label>Жаңа мекенжай
-		<input name="add" maxlength="200" required placeholder="Көше, үй, подъезд, қабат, пәтер" autocomplete="street-address">
-	</label>
-	<button type="submit">Қосу</button>
+	<label for="addr-add">Жаңа мекенжай</label>
+	<div class="addr-row">
+		<input id="addr-add" name="add" maxlength="200" required placeholder="Көше, үй, подъезд, қабат, пәтер" autocomplete="off">
+		<button type="submit">Қосу</button>
+	</div>
 </form>
 <?php endif; ?>
 <?php foot();
