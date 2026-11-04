@@ -150,21 +150,80 @@ function gift_on(): bool {
 	return $on;
 }
 
-// Stamp card per place: done orders since the last gift (and since gift_from)
+function table_on(string $t): bool {
+	static $c = [];
+	if (!isset($c[$t])) {
+		$q = db()->prepare('SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?');
+		$q->execute([$t]);
+		$c[$t] = (int)$q->fetchColumn() === 1;
+	}
+	return $c[$t];
+}
+
+// Gift tiers of a company, smallest "every" first. Same rules as the kassa (config/loyalty.php):
+// active tiers from company_gift_tier, else the old single gift_every/gift_name.
+function gift_tiers(array $c): array {
+	$out = [];
+	if (table_on('company_gift_tier')) {
+		$q = db()->prepare('SELECT every, name FROM company_gift_tier WHERE company_id = ? AND active = 1 AND every > 1 ORDER BY every, id');
+		$q->execute([(int)$c['company_id']]);
+		foreach ($q as $t) $out[] = ['every' => (int)$t['every'], 'name' => trim((string)$t['name'])];
+	} elseif ((int)$c['gift_every'] > 1 && trim((string)$c['gift_name']) !== '') {
+		$out[] = ['every' => (int)$c['gift_every'], 'name' => trim((string)$c['gift_name'])];
+	}
+	return $out;
+}
+
+// Tier for the k-th order: the biggest "every" that divides k
+function gift_tier_for(array $tiers, int $k): ?array {
+	$hit = null;
+	foreach ($tiers as $t) if ($k > 0 && $k % $t['every'] === 0) $hit = $t;
+	return $hit;
+}
+
+// Gift progress per place where this person is a client.
+// Orders count like the kassa: paid, not refused, since gift_from (orders on the way count too).
 function gift_cards(string $ids): array {
 	if (!gift_on()) return [];
-	$rows = db()->query("SELECT cc.id, c.name, c.gift_every, c.gift_name, c.gift_from,
-			(SELECT COALESCE(MAX(g.order_id), 0) FROM company_client_gift g WHERE g.client_id = cc.id) last_order,
+	$rows = db()->query("SELECT cc.id, cc.company_id, c.name, c.gift_every, c.gift_name, c.gift_from,
 			(SELECT COUNT(*) FROM company_client_gift g WHERE g.client_id = cc.id) got
 		FROM company_client cc JOIN company c ON c.id = cc.company_id
-		WHERE cc.id IN ($ids) AND c.gift_every > 0")->fetchAll();
-	// Counted by order id, not time: preorders have a future ins_dt
-	$cnt = db()->prepare('SELECT COUNT(*) FROM retail_orders WHERE client_id = ? AND order_status = 4 AND ins_dt >= ? AND id > ?');
-	foreach ($rows as &$r) {
-		$cnt->execute([$r['id'], $r['gift_from'] ?: '2000-01-01', (int)$r['last_order']]);
-		$r['have'] = min((int)$cnt->fetchColumn(), (int)$r['gift_every'] - 1); // the N-th order itself is the gift
+		WHERE cc.id IN ($ids)")->fetchAll();
+	$cnt = db()->prepare('SELECT COUNT(*) FROM retail_orders WHERE client_id = ? AND company_id = ? AND paid = 1 AND order_status NOT IN (5, 6, 10) AND ins_dt >= ?');
+	$out = [];
+	foreach ($rows as $r) {
+		$tiers = gift_tiers($r);
+		if (!$tiers) continue;
+		$cnt->execute([$r['id'], $r['company_id'], $r['gift_from'] ?: '2000-01-01']);
+		$n = (int)$cnt->fetchColumn();
+		$max = max(array_column($tiers, 'every'));
+		$next = null;
+		for ($k = $n + 1; $k <= $n + $max; $k++) if ($t = gift_tier_for($tiers, $k)) { $next = ['k' => $k, 'left' => $k - $n - 1, 'name' => $t['name']]; break; }
+		$prev = 0; // the last gift step already passed
+		for ($k = $n; $k > 0; $k--) if (gift_tier_for($tiers, $k)) { $prev = $k; break; }
+		$out[(int)$r['company_id']] = ['name' => $r['name'], 'count' => $n, 'got' => (int)$r['got'], 'tiers' => $tiers, 'next' => $next, 'prev' => $prev];
 	}
-	return $rows;
+	return $out;
+}
+
+// Cashback per place: balance and percent steps (company_cashback_step), only where the place gives it
+function cash_cards(string $ids): array {
+	if (!cashback_on()) return [];
+	$rows = db()->query("SELECT c.id company_id, c.name, c.cashback_percent pct, cc.cashback_balance bal
+		FROM company_client cc JOIN company c ON c.id = cc.company_id
+		WHERE cc.id IN ($ids) AND c.cashback_percent > 0 ORDER BY bal DESC")->fetchAll();
+	$steps = table_on('company_cashback_step') ? db()->prepare('SELECT from_sum, percent FROM company_cashback_step WHERE company_id = ? ORDER BY from_sum') : null;
+	$out = [];
+	foreach ($rows as $r) {
+		$st = [];
+		if ($steps) { $steps->execute([$r['company_id']]); foreach ($steps as $x) $st[] = ['from' => (int)$x['from_sum'], 'pct' => pct_txt((float)$x['percent'])]; }
+		$out[(int)$r['company_id']] = ['name' => $r['name'], 'bal' => (int)floor((float)$r['bal']), 'pct' => pct_txt((float)$r['pct']), 'steps' => $st];
+	}
+	return $out;
+}
+
+function pct_txt(float $v): string {
+	return rtrim(rtrim(number_format($v, 2, '.', ''), '0'), '.');
 }
 
 const MONTHS =['', 'Қаң', 'Ақп', 'Нау', 'Сәу', 'Мам', 'Мау', 'Шіл', 'Там', 'Қыр', 'Қаз', 'Қар', 'Жел'];

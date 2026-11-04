@@ -50,12 +50,11 @@ $places = db()->query("SELECT c.name, COUNT(*) n, SUM(o.total) s FROM retail_ord
 
 $last = db()->query("SELECT $cols $base ORDER BY o.id DESC LIMIT 5")->fetchAll();
 
-// Cashback per place (only where the place gives it)
-$cash = cashback_on() ? db()->query("SELECT c.name, c.cashback_percent pct, cc.cashback_balance bal
-	FROM company_client cc JOIN company c ON c.id = cc.company_id
-	WHERE cc.id IN ($ids) AND c.cashback_percent > 0 ORDER BY bal DESC")->fetchAll() : [];
-
+// Bonuses per place: cashback and gifts, each by the place's own settings
+$cash = cash_cards($ids);
 $gifts = gift_cards($ids);
+$bonus = [];
+foreach ($cash + $gifts as $cid => $x) $bonus[$cid] = ['name' => $x['name'], 'cash' => $cash[$cid] ?? null, 'gift' => $gifts[$cid] ?? null];
 
 head('Басты', 'home');
 ?>
@@ -64,6 +63,39 @@ head('Басты', 'home');
 
 <?php if ($mc): ?>
 	<a class="card go-menu" href="/menu.php"><span>🍽 <b><?= e($mc['name']) ?></b> мәзірі</span><span class="more">Тапсырыс беру →</span></a>
+<?php endif; ?>
+
+<?php if ($bonus): ?>
+	<div class="row"><h2>Бонустарым</h2><?php if ($cash): ?><a class="more" href="/cashback.php">Кэшбэк тарихы →</a><?php endif; ?></div>
+	<div class="bonus">
+		<?php foreach ($bonus as $b): $c = $b['cash']; $g = $b['gift']; ?>
+			<div class="bn">
+				<div class="bn-head"><b><?= e($b['name']) ?></b><?php if ($c): ?><span class="bn-pct"><?= $c['steps'] ? e(reset($c['steps'])['pct'] . '–' . end($c['steps'])['pct']) : e($c['pct']) ?>% кэшбэк</span><?php endif; ?></div>
+				<?php if ($c): ?>
+					<div class="bn-bal"><small>Кэшбэк балансы</small><b><?= money($c['bal']) ?></b></div>
+					<?php if (count($c['steps']) > 1): ?>
+						<div class="bn-steps"><?php foreach ($c['steps'] as $st): ?><span><b><?= e($st['pct']) ?>%</b><?= $st['from'] > 0 ? money($st['from']) . '-дан' : 'кез келген' ?></span><?php endforeach; ?></div>
+					<?php endif; ?>
+					<p class="bn-note"><?= count($c['steps']) > 1 ? 'Тапсырыс сомасы көп болса, кэшбэк пайызы да көп. ' : '' ?>Кэшбэкті тек осы мекеменің тапсырысына жұмсауға болады.</p>
+				<?php endif; ?>
+				<?php if ($g): $nx = $g['next']; ?>
+					<div class="bn-gift">
+						<div class="row"><span>🎁 Сыйлыққа дейін</span><small><?= (int)$g['count'] ?> тапсырыс</small></div>
+						<?php if ($nx): $span = max(1, $nx['k'] - $g['prev']); $done = $g['count'] - $g['prev']; ?>
+							<div class="bn-bar"><i style="width: <?= round($done / $span * 100) ?>%"></i></div>
+							<p><?= $nx['left'] > 0
+								? 'Тағы <b>' . $nx['left'] . '</b> тапсырыс, сосын ' . $nx['k'] . '-шіге: <b>' . e($nx['name']) . '</b>'
+								: 'Келесі тапсырысыңызға сыйлық: <b>' . e($nx['name']) . '</b>' ?></p>
+						<?php endif; ?>
+						<ul class="bn-tiers">
+							<?php foreach ($g['tiers'] as $t): ?><li><span>Әр <?= $t['every'] ?>-ші тапсырыс</span><b><?= e($t['name']) ?></b></li><?php endforeach; ?>
+						</ul>
+						<?php if ($g['got']): ?><p class="muted small">Алынған сыйлық: <?= $g['got'] ?></p><?php endif; ?>
+					</div>
+				<?php endif; ?>
+			</div>
+		<?php endforeach; ?>
+	</div>
 <?php endif; ?>
 
 <?php if ($active): ?>
@@ -77,29 +109,6 @@ head('Басты', 'home');
 	<div><span>Орташа чек</span><b><?= money($n ? intdiv($s, $n) : 0) ?></b></div>
 	<div><span>Осы айда</span><b><?= money((int)$mon['s']) ?></b><small><?= (int)$mon['n'] ?> тапсырыс</small></div>
 </div>
-<?php foreach ($gifts as $g): $every = (int)$g['gift_every']; $left = $every - 1 - $g['have']; ?>
-	<div class="card stamp">
-		<div class="row"><b><?= e($g['name']) ?></b><small><?= (int)$g['have'] ?> / <?= $every ?></small></div>
-		<div class="dots">
-			<?php for ($i = 1; $i <= $every; $i++): ?>
-				<span class="<?= $i <= $g['have'] ? 'on' : '' ?><?= $i === $every ? ' gift' : '' ?>"><?= $i === $every ? '🎁' : ($i <= $g['have'] ? '✓' : $i) ?></span>
-			<?php endfor; ?>
-		</div>
-		<p><?= $left > 0
-			? 'Тағы <b>' . $left . '</b> тапсырыс, сосын ' . $every . '-шіге сыйлық: <b>' . e($g['gift_name']) . '</b>'
-			: 'Келесі тапсырысыңызға сыйлық: <b>' . e($g['gift_name']) . '</b>' ?></p>
-		<?php if ((int)$g['got']): ?><p class="muted small">Алынған сыйлық: <?= (int)$g['got'] ?></p><?php endif; ?>
-	</div>
-<?php endforeach; ?>
-<?php if ($cash): ?>
-	<div class="row"><h2>Кэшбэк</h2><a class="more" href="/cashback.php">Тарихы →</a></div>
-	<ul class="card list cash">
-		<?php foreach ($cash as $c): ?>
-			<li><span><?= e($c['name']) ?> <small><?= rtrim(rtrim((string)$c['pct'], '0'), '.') ?>%</small></span><b><?= money((int)floor((float)$c['bal'])) ?></b></li>
-		<?php endforeach; ?>
-	</ul>
-	<p class="muted small">Кэшбэкті тек сол мекемеден алған тапсырысқа жұмсауға болады.</p>
-<?php endif; ?>
 <?php if ($n): ?>
 	<p class="muted small">Алғашқы тапсырыс: <?= dt($sum['first_dt'], false) ?> · соңғысы: <?= dt($sum['last_dt'], false) ?></p>
 <?php endif; ?>
