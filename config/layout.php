@@ -15,7 +15,7 @@ function head(string $title, string $tab = '', string $extra = '', string $brand
 <link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
-<link rel="stylesheet" href="/assets/css/main.css?v=6">
+<link rel="stylesheet" href="/assets/css/main.css?v=7">
 <?= $extra ?>
 </head>
 <body<?= $qr ? ' class="qr"' : ($tab === 'sign' ? ' class="sign"' : ($me ? ' class="in"' : '')) ?>>
@@ -31,12 +31,12 @@ function head(string $title, string $tab = '', string $extra = '', string $brand
 <?php endif; ?>
 <?php if ($tab !== 'sign' && $me && profile_done($me)): ?>
 <nav class="tabs">
+	<a class="tabs-brand" href="/"><img src="/assets/img/logo/berik-mark.svg" alt="" width="28" height="28"><span>BERIK <b>POS</b></span></a>
 	<?php foreach (['home' => ['/', 'Басты', 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z'],
 		'menu' => ['/menu.php', 'Мәзір', 'M4 5h16M4 12h16M4 19h10'],
 		'orders' => ['/orders.php', 'Тапсырыстар', 'M6 2h12l2 4v15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6zM4 6h16M9 11h6M9 15h6'],
-		'addr' => ['/addresses.php', 'Мекенжай', 'M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z'],
 		'profile' => ['/profile.php', 'Профиль', 'M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zM3.5 21a8.5 8.5 0 0 1 17 0']] as $k => [$href, $label, $d]): ?>
-		<a href="<?= $href ?>"<?= $tab === $k ? ' class="on"' : '' ?>><svg viewBox="0 0 24 24" width="22" height="22"><path d="<?= $d ?>"/></svg><?= $label ?></a>
+		<a href="<?= $href ?>"<?= $tab === $k || ($tab === 'addr' && $k === 'profile') ? ' class="on"' : '' ?>><svg viewBox="0 0 24 24" width="22" height="22"><path d="<?= $d ?>"/></svg><?= $label ?></a>
 	<?php endforeach; ?>
 </nav>
 <?php endif; ?>

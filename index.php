@@ -58,8 +58,10 @@ foreach ($cash + $gifts as $cid => $x) $bonus[$cid] = ['name' => $x['name'], 'ca
 
 head('Басты', 'home');
 ?>
-<h1>Сәлем, <?= e($me['name']) ?>!</h1>
-<p class="muted">+7 <?= e($me['phone']) ?></p>
+<div class="hi">
+	<div><small>Қайырлы <?= (int)date('G') < 12 ? 'таң' : ((int)date('G') < 18 ? 'күн' : 'кеш') ?>,</small><h1><?= e($me['name']) ?></h1></div>
+	<a class="pf-ava" href="/profile.php" aria-label="Профиль"><?= e(mb_strtoupper(mb_substr(trim((string)$me['name']), 0, 1) . mb_substr(trim((string)$me['surname']), 0, 1))) ?></a>
+</div>
 
 <?php if ($mc): ?>
 	<a class="card go-menu" href="/menu.php"><span>🍽 <b><?= e($mc['name']) ?></b> мәзірі</span><span class="more">Тапсырыс беру →</span></a>

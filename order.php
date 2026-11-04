@@ -54,7 +54,7 @@ head('Тапсырыс №' . order_no($o), 'orders', $active ? '<meta http-equi
 		<h1>№<?= order_no($o) ?></h1>
 		<?= badge($s) ?>
 	</div>
-	<p class="muted"><?= e($o['company']) ?><?= $o['branch'] ? ' · ' . e($o['branch']) : '' ?></p>
+	<p class="muted"><?= e($o['company']) ?><?= $o['branch'] && $o['branch'] !== $o['company'] ? ' · ' . e($o['branch']) : '' ?></p>
 
 	<dl class="info">
 		<dt>Түрі</dt><dd><?= e($o['type_name']) ?></dd>

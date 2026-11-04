@@ -267,3 +267,31 @@ body.in .wrap { padding-top: 24px; }
 .bn-tiers b { text-align: right; }
 .bn > :last-child { margin-bottom: 16px; }
 .bn-gift > :last-child { margin-bottom: 0; }
+
+/* Desktop: brand on the left of the top tabs; phones: bottom bar without it */
+.tabs-brand { display: none !important; }
+@media (min-width: 720px) {
+	.tabs { padding: 0 24px; }
+	.tabs-brand { display: flex !important; align-items: center; gap: 8px; margin-right: auto; font-size: 15px !important; font-weight: 800 !important; color: var(--text) !important; letter-spacing: .4px; }
+	.tabs-brand b { color: var(--green); }
+	.tabs a:not(.tabs-brand):last-child { margin-right: auto; }
+}
+
+/* Greeting + avatar on the home page, profile hero */
+.hi { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.hi small { color: var(--muted); font-weight: 600; font-size: 15px; }
+.hi h1 { margin: 0; font-size: 26px; }
+.pf-ava { flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(135deg, #13b673, #0a7f50); color: #fff; font-weight: 800; font-size: 17px; letter-spacing: .5px; box-shadow: 0 6px 16px rgba(14, 167, 104, .25); }
+.pf-hero { display: flex; align-items: center; gap: 14px; padding: 18px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
+.pf-hero .pf-ava { width: 60px; height: 60px; font-size: 21px; }
+.pf-hero b { display: block; font-size: 20px; font-weight: 800; }
+.pf-hero span:not(.pf-ava) { color: var(--muted); font-size: 15px; }
+.pf-form { margin-top: 0; display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 560px) { .pf-form { grid-template-columns: 1fr 1fr; } .pf-wide { grid-column: 1 / -1; } }
+.pf-form input { width: 100%; height: 48px; background: #f6f8f7; border-color: #e3e8e5; }
+.pf-form input:focus { background: #fff; }
+.pf-form button.ghost { border: 1px solid var(--line); background: var(--card); color: var(--text); }
+.card .addr { padding: 0; margin: 0 0 4px; }
+.addr-empty { margin: 4px 0 8px; padding: 14px; text-align: center; color: var(--muted); border: 1px dashed var(--line); border-radius: 12px; font-size: 14px; }
+.card .addr-new { margin-top: 10px; }
+h2 { scroll-margin-top: 16px; }

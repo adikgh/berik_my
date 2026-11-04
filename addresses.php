@@ -8,17 +8,6 @@ $me = need_login();
 $ids = my_clients((int)$me['id']);
 $err = '';
 
-function addr_split(?string $s): array {
-	return array_values(array_filter(array_map('trim', explode(';', (string)$s)), 'strlen'));
-}
-
-function addr_load(string $ids): array {
-	$rows = db()->query("SELECT id, addresses FROM company_client WHERE id IN ($ids)")->fetchAll();
-	$all = [];
-	foreach ($rows as $r) foreach (addr_split($r['addresses']) as $a) $all[mb_strtolower($a)] ??= $a;
-	return [$rows, array_values($all)];
-}
-
 [$rows, $list] = addr_load($ids);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -41,42 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			if ($new !== (string)$r['addresses']) $up->execute([$new !== '' ? $new : null, $r['id']]);
 		}
 		db()->commit();
-		header('Location: /addresses.php');
+		header('Location: /profile.php#addr');
 		exit;
 	}
+	$_SESSION['addr_err'] = $err;
 }
-
-head('Мекенжайларым', 'addr');
-?>
-<h1>Мекенжайларым</h1>
-<p class="muted">Тапсырыс бергенде кассир осы тізімнен таңдай алады.</p>
-<?php if ($err): ?><p class="alert"><?= e($err) ?></p><?php endif; ?>
-
-<?php if ($list): ?>
-	<ul class="card list addr">
-		<?php foreach ($list as $a): ?>
-			<li>
-				<span class="addr-t"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg><?= e($a) ?></span>
-				<form method="post" onsubmit="return confirm('Өшіру керек пе?')">
-					<input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
-					<input type="hidden" name="del" value="<?= e($a) ?>">
-					<button type="submit" class="addr-del" aria-label="Өшіру"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-				</form>
-			</li>
-		<?php endforeach; ?>
-	</ul>
-<?php else: ?>
-	<p class="empty">Әзірге мекенжай жоқ.</p>
-<?php endif; ?>
-
-<?php if ($rows): ?>
-<form method="post" class="card addr-new">
-	<input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
-	<label for="addr-add">Жаңа мекенжай</label>
-	<div class="addr-row">
-		<input id="addr-add" name="add" maxlength="200" required placeholder="Көше, үй, подъезд, қабат, пәтер" autocomplete="off">
-		<button type="submit">Қосу</button>
-	</div>
-</form>
-<?php endif; ?>
-<?php foot();
+// The list and the form live in Профиль now
+header('Location: /profile.php#addr');
+exit;

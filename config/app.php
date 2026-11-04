@@ -226,6 +226,18 @@ function pct_txt(float $v): string {
 	return rtrim(rtrim(number_format($v, 2, '.', ''), '0'), '.');
 }
 
+// Saved addresses: company_client.addresses ("; " list), the same list the cashier sees
+function addr_split(?string $s): array {
+	return array_values(array_filter(array_map('trim', explode(';', (string)$s)), 'strlen'));
+}
+
+function addr_load(string $ids): array {
+	$rows = db()->query("SELECT id, addresses FROM company_client WHERE id IN ($ids)")->fetchAll();
+	$all = [];
+	foreach ($rows as $r) foreach (addr_split($r['addresses']) as $a) $all[mb_strtolower($a)] ??= $a;
+	return [$rows, array_values($all)];
+}
+
 const MONTHS =['', 'Қаң', 'Ақп', 'Нау', 'Сәу', 'Мам', 'Мау', 'Шіл', 'Там', 'Қыр', 'Қаз', 'Қар', 'Жел'];
 
 // Profile is filled when there is a real name and a password
