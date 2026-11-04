@@ -124,6 +124,7 @@ if (!$s['is_on']) {
 }
 
 $cats = menu_items((int)$c['id']);
+$look = menu_look($s);
 $types = menu_types($c, $s, $table > 0);
 $br = branches((int)$c['id']);
 $bfix = (int)($_SESSION['menu_b'][(int)$c['id']] ?? 0);
@@ -150,9 +151,13 @@ $cfg = [
 	'table' => $table,
 	'branches' => $bfix || count($br) < 2 || $table ? [] : array_map(fn($b) => ['id' => (int)$b['id'], 'name' => $b['name'], 'addr' => (string)$b['address']], $br),
 	'addrs' => $addrs,
+	'card' => (int)$look['card'],
+	'upsell' => (int)$look['upsell'],
+	'upsell_ids' => $look['upsell_ids'],
 ];
 
-head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css/menu.css?v=' . @filemtime(__DIR__ . '/assets/css/menu.css') . '">', $name);
+head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css/menu.css?v=' . @filemtime(__DIR__ . '/assets/css/menu.css') . '">'
+	. '<style>:root{--green:' . e($look['accent']) . '}</style>', $name);
 ?>
 <div class="mn_head">
 	<h1><?= e($name) ?></h1>
@@ -164,7 +169,7 @@ head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css
 <?php if (!$cats): ?>
 	<p class="empty">Мәзір бос.</p>
 <?php else: ?>
-	<div class="mn_find"><input type="search" id="mn_q" placeholder="Мәзірден іздеу" autocomplete="off" aria-label="Мәзірден іздеу"></div>
+	<?php if ($look['search']): ?><div class="mn_find"><input type="search" id="mn_q" placeholder="Мәзірден іздеу" autocomplete="off" aria-label="Мәзірден іздеу"></div><?php endif; ?>
 	<nav class="mn_cats" id="cats">
 		<?php foreach ($cats as $id => $k): ?><a href="#cat<?= $id ?>"><?= e($k['name']) ?></a><?php endforeach; ?>
 	</nav>
@@ -172,10 +177,10 @@ head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css
 	<?php foreach ($cats as $id => $k): ?>
 		<section class="mn_sec" id="cat<?= $id ?>">
 			<h2><?= e($k['name']) ?></h2>
-			<div class="mn_grid">
+			<div class="mn_grid<?= $look['layout'] === 'grid' ? ' mn_tiles' : '' ?>">
 				<?php foreach ($k['items'] as $i): ?>
-					<div class="mn_it" data-id="<?= $i['id'] ?>" data-cat="<?= $id ?>" data-name="<?= e($i['name']) ?>" data-price="<?= $i['price'] ?>" data-desc="<?= e($i['desc']) ?>" data-img="<?= e($i['img']) ?>">
-						<?php if ($i['img']): ?><img src="<?= e($i['img']) ?>" alt="" loading="lazy" onerror="this.remove()"><?php endif; ?>
+					<div class="mn_it" data-id="<?= $i['id'] ?>" data-cat="<?= $id ?>" data-name="<?= e($i['name']) ?>" data-price="<?= $i['price'] ?>" data-desc="<?= e($i['desc']) ?>" data-img="<?= $look['photos'] ? e($i['img']) : '' ?>">
+						<?php if ($i['img'] && $look['photos']): ?><img src="<?= e($i['img']) ?>" alt="" loading="lazy" onerror="this.remove()"><?php endif; ?>
 						<div class="mn_it_b">
 							<b><?= e($i['name']) ?></b>
 							<?php if ($i['desc'] !== ''): ?><small><?= e($i['desc']) ?></small><?php endif; ?>

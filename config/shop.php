@@ -83,6 +83,16 @@ function menu_set(int $cid): array {
 	return array_merge($def, $q->fetch() ?: []);
 }
 
+// Look of the menu, set in admin «QR меню» → «Мәзір көрінісі» (company_menu.look, JSON)
+function menu_look(array $s): array {
+	$l = ['accent' => '#0ea768', 'layout' => 'list', 'photos' => 1, 'search' => 1, 'card' => 1, 'upsell' => 1, 'upsell_ids' => []];
+	$j = json_decode((string)($s['look'] ?? ''), true);
+	if (is_array($j)) $l = array_merge($l, array_intersect_key($j, $l));
+	if (!preg_match('/^#[0-9a-f]{6}$/i', (string)$l['accent'])) $l['accent'] = '#0ea768';
+	$l['upsell_ids'] = array_values(array_map('intval', (array)$l['upsell_ids']));
+	return $l;
+}
+
 // Order types this company takes from the menu: [type id => name]
 // 1 = Жеткізу, 2 = Өзі алып кету, 4 = Үстелге (кафе, тек QR үстел сілтемесімен)
 function menu_types(array $c, array $s, bool $table): array {

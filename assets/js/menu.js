@@ -32,6 +32,9 @@
 
 	// "Add something else?": cheaper dishes from other categories, one per category in turn
 	function upsell(skip, n, cap) {
+		if (!M.upsell) return [];
+		if (M.upsell_ids && M.upsell_ids.length) // chosen in admin
+			return M.upsell_ids.map(String).filter(function (id) { return items[id] && !cart[id] && !(cur && cur.id === id); }).map(function (id) { return items[id]; }).slice(0, n);
 		var by = {}, cats = [];
 		order.forEach(function (id) {
 			var it = items[id];
@@ -152,7 +155,7 @@
 				add(u.dataset.id, 1);
 				u.classList.add('ok');
 				var b = $('.mn_up_add', u); b.textContent = '✓ Қосылды'; b.disabled = true;
-			} else if (!card.contains(u)) { openCard(u.dataset.id); }
+			} else if (!card.contains(u) && M.card !== 0) { openCard(u.dataset.id); }
 			return;
 		}
 		if (card.contains(e.target)) return;
@@ -163,7 +166,8 @@
 			return;
 		}
 		var it = e.target.closest('.mn_it');
-		if (it) openCard(it.dataset.id); // tap on a dish opens its card
+		if (it && M.card !== 0) openCard(it.dataset.id); // tap on a dish opens its card
+		else if (it && canBuy && !it.classList.contains('on')) add(it.dataset.id, 1);
 	});
 
 	// Search by name and description
@@ -234,5 +238,5 @@
 
 	draw();
 	var p0 = new URL(location.href).searchParams.get('p');
-	if (p0 && items[p0]) openCard(p0, false);
+	if (p0 && items[p0] && M.card !== 0) openCard(p0, false);
 })();
