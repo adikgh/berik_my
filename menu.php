@@ -10,6 +10,8 @@ if ($me && !profile_done($me) && !qr_mode()) $me = null; // unfinished profile o
 $c = current_company();
 if ($c && !empty($_GET['c']) && code_of($c) !== preg_replace('/[^a-z0-9]/', '', strtolower((string)$_GET['c']))) $c = null;
 $s = $c ? menu_set((int)$c['id']) : null;
+// A remembered place whose menu is off: show the list of open ones instead
+if ($c && !$s['is_on'] && empty($_GET['c'])) { $c = null; $s = null; }
 
 // Table and branch from the QR link stay for this company while the session lives
 if ($c && isset($_GET['t'])) $_SESSION['menu_t'][(int)$c['id']] = max(0, (int)$_GET['t']);
@@ -83,14 +85,19 @@ if (isset($_GET['o'])) {
 	exit;
 }
 
-// No company yet: the places of this client, or a hint
+// No company chosen: every place whose menu is turned on (this client's places first).
+// If there is only one, it opens right away.
 if (!$c) {
 	$places = [];
-	if ($me && menu_on()) {
-		$places = db()->query("SELECT c.name, c.code, c.city FROM company_client cc JOIN company c ON c.id = cc.company_id
-			JOIN company_menu m ON m.company_id = c.id AND m.is_on = 1
-			WHERE cc.id IN (" . my_clients((int)$me['id']) . ") AND (c.end_dt IS NULL OR c.end_dt > NOW()) ORDER BY cc.last_dt DESC")->fetchAll();
+	if (menu_on()) {
+		$mine = $me ? my_clients((int)$me['id']) : '0';
+		$places = db()->query("SELECT c.id, c.name, c.code, c.city,
+				(SELECT MAX(cc.last_dt) FROM company_client cc WHERE cc.company_id = c.id AND cc.id IN ($mine)) mine
+			FROM company c JOIN company_menu m ON m.company_id = c.id AND m.is_on = 1
+			WHERE c.end_dt IS NULL OR c.end_dt > NOW()
+			ORDER BY mine IS NULL, mine DESC, c.number, c.id")->fetchAll();
 	}
+	if (count($places) === 1) { header('Location: /menu.php?c=' . rawurlencode(code_of($places[0]))); exit; }
 	head('Мәзір', 'menu');
 	?>
 	<h1>Мәзір</h1>
@@ -98,11 +105,11 @@ if (!$c) {
 		<p class="muted">Мекемені таңдаңыз</p>
 		<ul class="card list">
 			<?php foreach ($places as $p): ?>
-				<li><a href="/menu.php?c=<?= e(ltrim(strtolower((string)$p['code']), '#')) ?>"><?= e($p['name']) ?></a><b><?= e(ucfirst((string)$p['city'])) ?></b></li>
+				<li><a href="/menu.php?c=<?= e(code_of($p)) ?>"><?= e($p['name']) ?></a><b><?= e(ucfirst((string)$p['city'])) ?></b></li>
 			<?php endforeach; ?>
 		</ul>
 	<?php else: ?>
-		<p class="empty">Мәзірді ашу үшін мекеменің QR кодын сканерлеңіз немесе сілтемесі арқылы кіріңіз.</p>
+		<p class="empty">Әзірге мәзірі ашық мекеме жоқ.</p>
 	<?php endif; ?>
 	<?php foot();
 	exit;
