@@ -18,11 +18,8 @@ if ($uid > 0 && hash_equals(client_link_sig($uid), $t)) {
 }
 
 http_response_code(404);
-head('Сілтеме жарамсыз');
+head('Сілтеме жарамсыз', 'sign');
+sign_open('Жеке кабинет', 'Сілтеме жарамсыз', 'Сілтеме қате немесе ескірген. Кафеден жаңа сілтеме сұраңыз немесе телефонмен кіріңіз.');
 ?>
-<div class="card login">
-	<h1>Сілтеме жарамсыз</h1>
-	<p class="muted">Сілтеме қате немесе ескірген. Кафеден жаңа сілтеме сұраңыз немесе телефонмен кіріңіз.</p>
-	<p><a class="btn" href="/login.php">Кіру</a></p>
-</div>
-<?php foot();
+	<a class="sg-btn" href="/login.php">Кіру</a>
+<?php sign_close(); foot();

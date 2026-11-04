@@ -15,10 +15,11 @@ function head(string $title, string $tab = '', string $extra = '', string $brand
 <link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
-<link rel="stylesheet" href="/assets/css/main.css?v=3">
+<link rel="stylesheet" href="/assets/css/main.css?v=4">
 <?= $extra ?>
 </head>
-<body<?= $qr ? ' class="qr"' : ($me ? ' class="in"' : '') ?>>
+<body<?= $qr ? ' class="qr"' : ($tab === 'sign' ? ' class="sign"' : ($me ? ' class="in"' : '')) ?>>
+<?php if ($tab !== 'sign'): ?>
 <header class="top">
 	<?php if ($qr): ?>
 		<a class="brand" href="/menu.php"><img src="/assets/img/logo/berik-mark.svg" alt="" width="32" height="32"><span class="cmp"><?= e($brand !== '' ? $brand : 'Мәзір') ?></span></a>
@@ -27,7 +28,8 @@ function head(string $title, string $tab = '', string $extra = '', string $brand
 		<?php if ($me): ?><a class="out" href="/exit.php">Шығу</a><?php elseif ($tab === 'menu'): ?><a class="out" href="/login.php">Кіру</a><?php endif; ?>
 	<?php endif; ?>
 </header>
-<?php if ($me && profile_done($me)): ?>
+<?php endif; ?>
+<?php if ($tab !== 'sign' && $me && profile_done($me)): ?>
 <nav class="tabs">
 	<?php foreach (['home' => ['/', 'Басты', 'M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z'],
 		'menu' => ['/menu.php', 'Мәзір', 'M4 5h16M4 12h16M4 19h10'],
@@ -43,6 +45,7 @@ function head(string $title, string $tab = '', string $extra = '', string $brand
 
 function foot(): void { ?>
 </main>
+<script src="/assets/js/phone.js?v=1" defer></script>
 </body>
 </html>
 <?php }
@@ -65,4 +68,42 @@ function order_card(array $o, array $st): void { ?>
 			<div class="sum"><?= money((int)$o['total']) ?></div>
 		</a>
 	</li>
+<?php }
+
+// Phone field: fixed +7 and a mask (700) 000-00-00; the server keeps the last 10 digits
+function phone_input(string $value = '', bool $required = true, bool $focus = false): string {
+	return '<span class="ph"><span class="ph-cc">+7</span><input type="tel" name="phone" class="js-phone" value="' . e($value !== '' ? phone_fmt($value) : '')
+		. '" inputmode="numeric" maxlength="15" placeholder="(700) 000-00-00" autocomplete="tel-national"'
+		. ($required ? ' required' : '') . ($focus ? ' autofocus' : '') . '></span>';
+}
+
+// Sign pages (login, register, link): brand panel + form card
+function sign_open(string $badge, string $title, string $sub): void { ?>
+<div class="sg">
+	<div class="sg-card">
+		<aside class="sg-side">
+			<a class="sg-brand" href="/"><span class="sg-logo"><img src="/assets/img/logo/berik-icon.svg" alt="" width="34" height="34"></span><span>BERIK <b>POS</b></span></a>
+			<div class="sg-pitch">
+				<h2>Сүйікті кафеңіз бір жерде</h2>
+				<ul>
+					<li><svg viewBox="0 0 24 24"><path d="M6 2h12l2 4v15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6zM4 6h16M9 11h6M9 15h6"/></svg>Тапсырыстарыңыз бен статусы</li>
+					<li><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>Кэшбэк пен сыйлықтар</li>
+					<li><svg viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg>Мекенжайлар және мәзір</li>
+				</ul>
+			</div>
+			<small>© Berik POS, <?= date('Y') ?></small>
+		</aside>
+		<section class="sg-main">
+			<div class="sg-box">
+				<span class="sg-badge"><?= e($badge) ?></span>
+				<h1><?= e($title) ?></h1>
+				<p class="sg-sub"><?= $sub ?></p>
+<?php }
+
+function sign_close(): void { ?>
+			</div>
+			<a class="sg-made" href="https://gprog.kz" target="_blank" rel="noopener">#gprog-та жасалған</a>
+		</section>
+	</div>
+</div>
 <?php }

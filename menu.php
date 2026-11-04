@@ -211,7 +211,7 @@ head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css
 
 			<?php if (!$me): ?>
 				<label>Атыңыз <input name="name" maxlength="60" autocomplete="given-name"<?= $table ? '' : ' required' ?>></label>
-				<label>Телефон <input type="tel" name="phone" inputmode="numeric" placeholder="7XX XXX XX XX" autocomplete="tel"<?= $table ? '' : ' required' ?>></label>
+				<label>Телефон <?= phone_input('', !$table) ?></label>
 			<?php endif; ?>
 
 			<div class="mn_dlv" data-t="1">

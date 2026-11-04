@@ -11,16 +11,35 @@ session_set_cookie_params([
 ]);
 session_start();
 
+// Connection settings: config/db.php (not in git, differs on live), else local defaults.
+// config/db.example.php shows the format.
 function db(): PDO {
 	static $pdo = null;
 	if ($pdo === null) {
-		$pdo = new PDO('mysql:host=localhost;dbname=berik_004;charset=utf8mb4', 'root', '', [
-			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-			PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-			PDO::ATTR_EMULATE_PREPARES => false,
-		]);
+		$c = ['host' => 'localhost', 'name' => 'berik_004', 'user' => 'root', 'pass' => ''];
+		if (is_file(__DIR__ . '/db.php')) $c = array_merge($c, (array)require __DIR__ . '/db.php');
+		try {
+			$pdo = new PDO('mysql:host=' . $c['host'] . ';dbname=' . $c['name'] . ';charset=utf8mb4', $c['user'], $c['pass'], [
+				PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+				PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+				PDO::ATTR_EMULATE_PREPARES => false,
+			]);
+		} catch (PDOException $ex) {
+			error_log('my.berik: db connect failed: ' . $ex->getMessage());
+			db_down();
+		}
 	}
 	return $pdo;
+}
+
+// Shown instead of a blank page when the database is not reachable
+function db_down(): void {
+	http_response_code(503);
+	header('Content-Type: text/html; charset=utf-8');
+	echo '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+		. '<title>Уақытша қолжетімсіз</title><body style="margin:0;min-height:100vh;display:grid;place-items:center;font:16px/1.5 system-ui,sans-serif;background:#f4f6f5;color:#1d2421;text-align:center;padding:24px;box-sizing:border-box">'
+		. '<div><h1 style="font-size:22px;margin:0 0 8px">Сервис уақытша қолжетімсіз</h1><p style="margin:0;color:#6b7570">Базаға қосылу мүмкін болмады. Біраздан кейін қайта көріңіз.</p></div>';
+	exit;
 }
 
 function e(?string $s): string {
@@ -38,6 +57,13 @@ function csrf_ok(): bool {
 
 function phone10(string $s): string {
 	return substr(preg_replace('/\D/', '', $s), -10);
+}
+
+// 7074321999 -> (707) 432-19-99, as the phone field shows it after +7
+function phone_fmt(string $p): string {
+	$d = preg_replace('/\D/', '', $p);
+	if (strlen($d) !== 10) return $d;
+	return '(' . substr($d, 0, 3) . ') ' . substr($d, 3, 3) . '-' . substr($d, 6, 2) . '-' . substr($d, 8, 2);
 }
 
 function money(int $n): string {

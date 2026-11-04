@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	// Step 1: send the code
 	elseif (isset($_POST['phone'])) {
 		$phone = phone10((string)$_POST['phone']);
-		if (strlen($phone) !== 10 || $phone[0] !== '7') $err = 'Телефонды толық жазыңыз.';
+		if (strlen($phone) !== 10 || $phone[0] !== '7') $err = 'Телефон нөмірін толық жазыңыз: +7 (700) 000-00-00.';
 		elseif ($otp && $otp['sent'] > time() - 60) $err = 'Кодты 1 минуттан кейін қайта сұрауға болады.';
 		elseif (too_many('send', 3)) $err = 'Тым көп код сұралды. 15 минуттан кейін көріңіз.';
 		else {
@@ -60,38 +60,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	elseif (isset($_POST['back'])) { $otp = null; unset($_SESSION['otp']); }
 }
 
-head('Тіркелу');
+head('Тіркелу', 'sign');
+sign_open('Жеке кабинет', $otp ? 'Кодты жазыңыз' : 'Тіркелу', $otp ? 'Код +7 ' . e(phone_fmt($otp['phone'])) . ' нөміріне жіберілді' : 'Телефоныңызға растау коды келеді. Парольді ұмытсаңыз да осы жерден кіресіз.');
 ?>
-<div class="card login">
-	<h1>Тіркелу</h1>
 	<?php if ($err): ?><p class="alert"><?= e($err) ?></p><?php endif; ?>
 
 	<?php if (!$otp): ?>
-		<p class="muted">Телефоныңызға растау коды келеді</p>
-		<form method="post">
+		<form method="post" class="sg-form">
 			<input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
-			<label>Телефон
-				<input type="tel" name="phone" inputmode="numeric" placeholder="7XX XXX XX XX" required autofocus autocomplete="tel">
-			</label>
-			<button type="submit">Код алу</button>
+			<label>Телефон <?= phone_input('', true, true) ?></label>
+			<button type="submit" class="sg-btn">Код алу</button>
 		</form>
 	<?php else: ?>
-		<p class="muted">+7 <?= e($otp['phone']) ?> нөміріне код жіберілді</p>
 		<?php if (notify_test() && !empty($_SESSION['test_code'])): ?>
 			<p class="alert ok">Тест режимі, код: <b><?= e($_SESSION['test_code']) ?></b></p>
 		<?php endif; ?>
-		<form method="post">
+		<form method="post" class="sg-form">
 			<input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
 			<label>Код
-				<input name="code" inputmode="numeric" maxlength="4" pattern="\d{4}" required autofocus autocomplete="one-time-code">
+				<input name="code" class="sg-code" inputmode="numeric" maxlength="4" pattern="\d{4}" placeholder="• • • •" required autofocus autocomplete="one-time-code">
 			</label>
-			<button type="submit">Растау</button>
+			<button type="submit" class="sg-btn">Растау</button>
 		</form>
-		<form method="post" class="inline">
+		<form method="post" class="sg-form inline">
 			<input type="hidden" name="csrf" value="<?= e(csrf()) ?>">
 			<button type="submit" name="back" value="1" class="link">Басқа нөмір</button>
 		</form>
 	<?php endif; ?>
-	<p class="small"><a href="/login.php">Кіру</a></p>
-</div>
-<?php foot();
+	<p class="sg-links"><a href="/login.php">Парольмен кіру</a></p>
+<?php sign_close(); foot();
