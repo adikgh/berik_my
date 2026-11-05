@@ -156,10 +156,20 @@ $cfg = [
 	'upsell_ids' => $look['upsell_ids'],
 ];
 
-head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css/menu.css?v=' . @filemtime(__DIR__ . '/assets/css/menu.css') . '">'
+$tpl = $look['tpl'];
+$tcss = $tpl ? '<link rel="stylesheet" href="/assets/css/menu-t' . $tpl . '.css?v=' . @filemtime(__DIR__ . '/assets/css/menu-t' . $tpl . '.css') . '">' : '';
+head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css/menu.css?v=' . @filemtime(__DIR__ . '/assets/css/menu.css') . '">' . $tcss
 	. '<style>:root{--green:' . e($look['accent']) . '}</style>', $name);
+// Templates: a soft tile with an emoji stands in for a missing photo; a broken photo falls back to it too
+$media = function (array $i, string $cat) use ($tpl, $look): string {
+	if (!$tpl) return $i['img'] && $look['photos'] ? '<img src="' . e($i['img']) . '" alt="" loading="lazy" onerror="this.remove()">' : '';
+	$img = $i['img'] && $look['photos'] ? '<img src="' . e($i['img']) . '" alt="" loading="lazy" onerror="this.remove()">' : '';
+	return '<div class="mn_ph" style="--h:' . ($i['id'] * 47 % 360) . '"><em aria-hidden="true">' . food_icon($i['name'], $cat) . '</em>' . $img . '</div>';
+};
 ?>
+<div class="mn_tpl<?= $tpl ? ' mn_t' . $tpl : '' ?>">
 <div class="mn_head">
+	<?php if ($tpl): ?><p class="mn_hi"><?= $table ? 'Қош келдіңіз!' : 'Бүгін не жейміз?' ?></p><?php endif; ?>
 	<h1><?= e($name) ?></h1>
 	<?php if ($table): ?><p class="mn_table">🍽 Үстел №<?= $table ?></p><?php endif; ?>
 	<?php if (trim((string)$s['note']) !== ''): ?><p class="mn_note"><?= nl2br(e((string)$s['note'])) ?></p><?php endif; ?>
@@ -171,16 +181,16 @@ head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css
 <?php else: ?>
 	<?php if ($look['search']): ?><div class="mn_find"><input type="search" id="mn_q" placeholder="Мәзірден іздеу" autocomplete="off" aria-label="Мәзірден іздеу"></div><?php endif; ?>
 	<nav class="mn_cats" id="cats">
-		<?php foreach ($cats as $id => $k): ?><a href="#cat<?= $id ?>"><?= e($k['name']) ?></a><?php endforeach; ?>
+		<?php foreach ($cats as $id => $k): ?><a href="#cat<?= $id ?>"><?php if ($tpl): ?><i aria-hidden="true"><?= food_icon($k['name'], (string)($k['items'][0]['name'] ?? '')) ?></i><?php endif; ?><span><?= e($k['name']) ?></span></a><?php endforeach; ?>
 	</nav>
 	<p class="empty mn_none" hidden>Ештеңе табылмады.</p>
 	<?php foreach ($cats as $id => $k): ?>
 		<section class="mn_sec" id="cat<?= $id ?>">
-			<h2><?= e($k['name']) ?></h2>
+			<h2><?= e($k['name']) ?><?php if ($tpl): ?> <small><?= count($k['items']) ?></small><?php endif; ?></h2>
 			<div class="mn_grid<?= $look['layout'] === 'grid' ? ' mn_tiles' : '' ?>">
 				<?php foreach ($k['items'] as $i): ?>
-					<div class="mn_it" data-id="<?= $i['id'] ?>" data-cat="<?= $id ?>" data-name="<?= e($i['name']) ?>" data-price="<?= $i['price'] ?>" data-desc="<?= e($i['desc']) ?>" data-img="<?= $look['photos'] ? e($i['img']) : '' ?>">
-						<?php if ($i['img'] && $look['photos']): ?><img src="<?= e($i['img']) ?>" alt="" loading="lazy" onerror="this.remove()"><?php endif; ?>
+					<div class="mn_it" data-id="<?= $i['id'] ?>" data-cat="<?= $id ?>" data-name="<?= e($i['name']) ?>" data-price="<?= $i['price'] ?>" data-desc="<?= e($i['desc']) ?>" data-img="<?= $look['photos'] ? e($i['img']) : '' ?>"<?= $tpl ? ' data-ico="' . e(food_icon($i['name'], $k['name'])) . '" data-h="' . ($i['id'] * 47 % 360) . '"' : '' ?>>
+						<?= $media($i, $k['name']) ?>
 						<div class="mn_it_b">
 							<b><?= e($i['name']) ?></b>
 							<?php if ($i['desc'] !== ''): ?><small><?= e($i['desc']) ?></small><?php endif; ?>
@@ -203,6 +213,7 @@ head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css
 	<div class="mn_box">
 		<button type="button" class="mn_x mn_close" aria-label="Жабу">✕</button>
 		<img class="mn_c_img" alt="" hidden>
+		<?php if ($tpl): ?><div class="mn_c_ph" hidden><em aria-hidden="true"></em></div><?php endif; ?>
 		<h2 class="mn_c_name"></h2>
 		<p class="mn_c_desc"></p>
 		<p class="mn_c_pr"></p>
@@ -285,6 +296,7 @@ head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css
 	</div>
 </div>
 <?php endif; ?>
+</div>
 <?php if ($cats): ?>
 <script>window.MENU = <?= json_encode($cfg, JSON_UNESCAPED_UNICODE) ?>;</script>
 <script src="/assets/js/menu.js?v=<?= @filemtime(__DIR__ . '/assets/js/menu.js') ?>"></script>

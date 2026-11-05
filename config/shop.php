@@ -85,12 +85,32 @@ function menu_set(int $cid): array {
 
 // Look of the menu, set in admin «QR меню» → «Мәзір көрінісі» (company_menu.look, JSON)
 function menu_look(array $s): array {
-	$l = ['accent' => '#0ea768', 'layout' => 'list', 'photos' => 1, 'search' => 1, 'card' => 1, 'upsell' => 1, 'upsell_ids' => []];
+	$l = ['tpl' => 0, 'accent' => '#0ea768', 'layout' => 'list', 'photos' => 1, 'search' => 1, 'card' => 1, 'upsell' => 1, 'upsell_ids' => []];
 	$j = json_decode((string)($s['look'] ?? ''), true);
 	if (is_array($j)) $l = array_merge($l, array_intersect_key($j, $l));
 	if (!preg_match('/^#[0-9a-f]{6}$/i', (string)$l['accent'])) $l['accent'] = '#0ea768';
 	$l['upsell_ids'] = array_values(array_map('intval', (array)$l['upsell_ids']));
+	$l['tpl'] = in_array((int)$l['tpl'], [1, 2], true) ? (int)$l['tpl'] : 0; // 0 = негізгі, 1 = Шаблон-1, 2 = Шаблон-2
 	return $l;
+}
+
+// Emoji for a dish or category with no photo (templates draw it on a soft colour)
+function food_icon(string ...$names): string {
+	static $map = [
+		'пицц|pizza' => '🍕', 'бургер|burger|чизбург' => '🍔', 'суши|ролл|roll|сет ролл' => '🍣', 'шаурм|донер|лаваш|шаверм|doner' => '🌯',
+		'фри|картоп|картош|наггетс' => '🍟', 'хот-?дог|hot ?dog|сосис' => '🌭', 'лапш|вок|wok|рамен|лагман|удон|паст|спагет' => '🍜',
+		'салат' => '🥗', 'суп|сорпа|борщ|сорп|шорп' => '🍲', 'кофе|латте|капуч|американо|эспрес|раф' => '☕', 'шай|чай|tea' => '🍵',
+		'торт|десерт|тәтті|пирож|чизкейк|выпеч|тоқаш|бәліш|самса' => '🍰', 'балмұздақ|морожен|мороже' => '🍨',
+		'коктейл|смузи|милкшейк|шейк|лимонад|мохито' => '🍹', 'сусын|напит|кола|cola|сок|шырын|вода|фанта|спрайт|пепси|айран|компот' => '🥤',
+		'тауық|курин|куриц|крыл|чикен|chicken|тандыр' => '🍗', 'шашлык|стейк|ет |мяс|кәуап|кебаб|плов|палау|манты|бешбармак|қуырдақ' => '🥩',
+		'соус' => '🥫', 'нан|хлеб|лепеш|бауырсақ' => '🥖', 'сет|комбо|набор|combo|бокс|box' => '🍱', 'завтрак|таңғы|омлет|яичн' => '🍳',
+		'балық|рыб|fish' => '🐟', 'сэндвич|сендвич|тост|клаб' => '🥪', 'хинкал|пельмен|вареник' => '🥟',
+	];
+	foreach ($names as $n) {
+		$n = mb_strtolower($n . ' ');
+		foreach ($map as $re => $ic) if (preg_match('/' . $re . '/u', $n)) return $ic;
+	}
+	return '🍽️';
 }
 
 // Order types this company takes from the menu: [type id => name]

@@ -1,0 +1,66 @@
+/* Шаблон-2: light grey page, white cards, round "plate" photos, bright accent buttons */
+body:has(.mn_t2) { background: #f2f2f4; }
+body:has(.mn_t2) .top { background: transparent; }
+.mn_t2 { --ink: #1c1c22; --plate: #f5f5f7; }
+
+/* Emoji plate for a dish with no photo; a real photo covers it */
+.mn_tpl .mn_ph { position: relative; display: grid; place-items: center; overflow: hidden; flex: none;
+	background: radial-gradient(circle at 35% 30%, hsl(var(--h) 95% 97%), hsl(var(--h) 75% 88%)); }
+.mn_tpl .mn_ph em { font-style: normal; font-size: 40px; line-height: 1; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .15)); }
+.mn_tpl .mn_ph img { position: absolute; inset: 0; order: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 0; background: none; }
+
+/* Header */
+.mn_t2 .mn_hi { margin: 0; color: #8b8b95; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: .6px; }
+.mn_t2 .mn_head h1 { font-size: 30px; font-weight: 800; color: var(--ink); letter-spacing: -.4px; }
+.mn_t2 .mn_table { background: var(--green); color: #fff; }
+.mn_t2 .mn_note { background: #fff; }
+.mn_t2 .mn_find input { background: #fff; border-radius: 16px; padding: 14px 14px 14px 42px; }
+.mn_t2 .mn_find input:focus { outline: 2px solid var(--green); }
+
+/* Categories: round icons with a caption */
+.mn_t2 .mn_cats { gap: 4px; padding: 12px 16px 8px; background: rgba(242, 242, 244, .92); }
+.mn_t2 .mn_cats a { display: grid; justify-items: center; gap: 5px; min-width: 70px; padding: 0 2px; border-radius: 0; background: none; color: #55555f; font-size: 12px; }
+.mn_t2 .mn_cats a i { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; background: #fff; font-style: normal; font-size: 26px;
+	box-shadow: 0 3px 10px rgba(0, 0, 0, .06); transition: box-shadow .15s, transform .15s; }
+.mn_t2 .mn_cats a span { max-width: 76px; overflow: hidden; text-overflow: ellipsis; }
+.mn_t2 .mn_cats a.on { background: none; color: var(--ink); }
+.mn_t2 .mn_cats a.on i { box-shadow: 0 0 0 2px var(--green), 0 6px 14px rgba(0, 0, 0, .1); transform: translateY(-2px); }
+.mn_t2 .mn_sec { scroll-margin-top: 110px; }
+.mn_t2 .mn_sec h2 { display: flex; align-items: baseline; gap: 8px; font-size: 20px; color: var(--ink); margin: 22px 0 10px; }
+.mn_t2 .mn_sec h2 small { color: #9a9aa3; font-size: 13px; font-weight: 700; }
+
+/* Dishes: list = white rows with a round photo, grid = cards with the plate on top */
+.mn_t2 .mn_grid { gap: 10px; }
+.mn_t2 .mn_it { align-items: center; gap: 14px; padding: 12px; border: 0; border-radius: 20px; background: #fff; }
+.mn_t2 .mn_it > .mn_ph { order: 0; width: 92px; height: 92px; border-radius: 50%; box-shadow: 0 8px 18px rgba(0, 0, 0, .12); }
+.mn_t2 .mn_it_b { align-self: stretch; }
+.mn_t2 .mn_it_b > b { color: var(--ink); font-size: 15px; }
+.mn_t2 .mn_pr { color: var(--ink); font-size: 16px; }
+.mn_t2 .mn_tiles .mn_it { align-items: stretch; gap: 10px; padding: 14px 12px 12px; }
+.mn_t2 .mn_tiles .mn_it > .mn_ph { width: 72%; height: auto; aspect-ratio: 1; margin: 0 auto 2px; }
+.mn_t2 .mn_tiles .mn_ph em { font-size: 52px; }
+.mn_t2 .mn_tiles .mn_it_b small { -webkit-line-clamp: 1; }
+
+/* Buttons: small rounded squares in the accent colour */
+.mn_t2 .mn_q { background: var(--plate); border-radius: 12px; }
+.mn_t2 .mn_q button { border-radius: 10px; }
+.mn_t2 .mn_it:not(.on) .mn_plus { width: 34px; height: 34px; border-radius: 11px; background: var(--green); box-shadow: 0 6px 14px color-mix(in srgb, var(--green) 40%, transparent); }
+.mn_t2 .mn_bar { border-radius: 18px; background: var(--ink); }
+.mn_t2 .mn_c_add, .mn_t2 button[type=submit] { border-radius: 16px; }
+
+/* Dish card: the photo sits on a grey plate */
+.mn_t2 .mn_card .mn_box { background: #fff; }
+.mn_t2 .mn_c_img { width: 62%; max-width: 300px; aspect-ratio: 1; margin: 26px auto 0; border-radius: 50%; box-shadow: 0 18px 36px rgba(0, 0, 0, .18); }
+.mn_tpl .mn_c_ph { display: grid; place-items: center; width: 62%; max-width: 300px; aspect-ratio: 1; margin: 26px auto 0; border-radius: 50%;
+	background: radial-gradient(circle at 40% 35%, hsl(var(--h, 20) 95% 97%), hsl(var(--h, 20) 70% 86%)); box-shadow: 0 18px 36px rgba(0, 0, 0, .12); }
+.mn_tpl .mn_c_ph[hidden] { display: none; }
+.mn_tpl .mn_c_ph em { font-style: normal; font-size: 110px; line-height: 1; filter: drop-shadow(0 12px 16px rgba(0, 0, 0, .18)); }
+.mn_t2 .mn_card .mn_box::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 46%; max-height: 300px; background: var(--plate); border-radius: inherit; border-bottom-left-radius: 50% 40px; border-bottom-right-radius: 50% 40px; }
+.mn_t2 .mn_card .mn_box > * { position: relative; }
+.mn_t2 .mn_card .mn_box > .mn_x { position: absolute; }
+.mn_t2 .mn_c_foot { position: sticky; }
+.mn_t2 .mn_c_pr { color: var(--green); font-size: 22px; }
+.mn_tpl .mn_up_it .mn_ph { width: 100%; aspect-ratio: 1; border-radius: 50%; }
+.mn_tpl .mn_up_it .mn_ph em { font-size: 38px; }
+.mn_t2 .mn_up_it { background: var(--plate); }
+.mn_t2 .mn_card .mn_box > .mn_c_ph { margin: 26px auto 0 !important; }

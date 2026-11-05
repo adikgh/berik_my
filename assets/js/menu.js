@@ -11,7 +11,7 @@
 	var items = {}, order = [];
 	$$('.mn_it').forEach(function (el) {
 		var d = el.dataset;
-		items[d.id] = { id: d.id, el: el, cat: d.cat, name: d.name, price: +d.price, desc: d.desc || '', img: d.img || '' };
+		items[d.id] = { id: d.id, el: el, cat: d.cat, name: d.name, price: +d.price, desc: d.desc || '', img: d.img || '', ico: d.ico || '', h: d.h || 0 };
 		order.push(d.id);
 	});
 	Object.keys(cart).forEach(function (id) { if (!items[id] || !(cart[id] > 0)) delete cart[id]; });
@@ -53,7 +53,9 @@
 		box.hidden = !canBuy || !list.length;
 		$('.mn_up_list', box).innerHTML = list.map(function (it) {
 			return '<div class="mn_up_it" data-id="' + it.id + '">' +
-				(it.img ? '<img src="' + esc(it.img) + '" alt="" loading="lazy" onerror="this.remove()">' : '') +
+				(it.ico ? '<div class="mn_ph" style="--h:' + (+it.h) + '"><em aria-hidden="true">' + esc(it.ico) + '</em>' +
+					(it.img ? '<img src="' + esc(it.img) + '" alt="" loading="lazy" onerror="this.remove()">' : '') + '</div>'
+				: (it.img ? '<img src="' + esc(it.img) + '" alt="" loading="lazy" onerror="this.remove()">' : '')) +
 				'<b>' + esc(it.name) + '</b><button type="button" class="mn_up_add">+ ' + money(it.price) + '</button></div>';
 		}).join('');
 	}
@@ -117,6 +119,8 @@
 		var img = $('.mn_c_img', card);
 		img.hidden = !cur.img;
 		if (cur.img) img.src = cur.img; else img.removeAttribute('src');
+		var ph = $('.mn_c_ph', card); // templates: emoji tile when there is no photo
+		if (ph) { ph.hidden = !!cur.img; ph.style.setProperty('--h', +cur.h); $('em', ph).textContent = cur.ico; img.onerror = function () { img.hidden = true; ph.hidden = false; }; }
 		$('.mn_c_name', card).textContent = cur.name;
 		$('.mn_c_desc', card).textContent = cur.desc;
 		$('.mn_c_desc', card).hidden = !cur.desc;
