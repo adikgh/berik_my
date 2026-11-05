@@ -64,3 +64,4 @@ body:has(.mn_t2) .top { background: transparent; }
 .mn_tpl .mn_up_it .mn_ph em { font-size: 38px; }
 .mn_t2 .mn_up_it { background: var(--plate); }
 .mn_t2 .mn_card .mn_box > .mn_c_ph { margin: 26px auto 0 !important; }
+.mn_tpl .mn_up_list { scroll-padding: 0 16px; }

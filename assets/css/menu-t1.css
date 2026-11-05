@@ -66,3 +66,4 @@ body:has(.mn_t1) .top { background: transparent; }
 .mn_t1 .mn_up_it { background: var(--soft); }
 @media (min-width: 720px) { .mn_t1 .mn_card .mn_box { border-radius: 28px; } }
 .mn_t1 .mn_card .mn_box > .mn_c_ph { margin: 0 !important; }
+.mn_tpl .mn_up_list { scroll-padding: 0 16px; }
