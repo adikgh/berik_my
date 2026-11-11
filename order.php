@@ -71,6 +71,7 @@ head('Тапсырыс №' . order_no($o), 'orders', $active ? '<meta http-equi
 	<?php endforeach; ?>
 	</ul>
 	<?php if ((int)$o['pay_delivery'] > 0): ?><div class="row"><span>Жеткізу</span><span><?= money((int)$o['pay_delivery']) ?></span></div><?php endif; ?>
+	<?php if ((int)($o['promo_discount'] ?? 0) > 0): // Акция жеңілдігі (кассада таңдалған) ?><div class="row"><span>🏷 Акция: <?= e($o['promo_name']) ?> −<?= rtrim(rtrim(number_format((float)$o['promo_percent'], 2, '.', ''), '0'), '.') ?>%</span><b class="plus">−<?= money((int)$o['promo_discount']) ?></b></div><?php endif; ?>
 	<div class="row total"><span>Барлығы</span><span><?= money((int)$o['total']) ?></span></div>
 
 	<?php if ($pay): ?>
