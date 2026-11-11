@@ -17,9 +17,18 @@ function db(): PDO {
 	static $pdo = null;
 	if ($pdo === null) {
 		$c = ['host' => 'localhost', 'name' => 'berik_004', 'user' => 'root', 'pass' => ''];
-		if (is_file(__DIR__ . '/db.php')) $c = array_merge($c, (array)require __DIR__ . '/db.php');
+		if (is_file(__DIR__ . '/db.php')) {
+			$r = require __DIR__ . '/db.php';
+			// Two formats work: return ['host','name','user','pass'] (db.example.php)
+			// or the same db.php as the other sites (class db with static $host/$user/$pass/$name).
+			if (is_array($r)) $c = array_merge($c, $r);
+			elseif (class_exists('db', false) && isset(db::$host)) $c = ['host' => db::$host, 'name' => db::$name, 'user' => db::$user, 'pass' => db::$pass];
+		}
+		// 'localhost:3306' -> host + port (PDO does not accept host:port)
+		$host = (string)$c['host']; $port = '';
+		if (preg_match('~^(.+):(\d+)$~', $host, $m)) { $host = $m[1]; $port = ';port=' . $m[2]; }
 		try {
-			$pdo = new PDO('mysql:host=' . $c['host'] . ';dbname=' . $c['name'] . ';charset=utf8mb4', $c['user'], $c['pass'], [
+			$pdo = new PDO('mysql:host=' . $host . $port . ';dbname=' . $c['name'] . ';charset=utf8mb4', $c['user'], $c['pass'], [
 				PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 				PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
 				PDO::ATTR_EMULATE_PREPARES => false,
