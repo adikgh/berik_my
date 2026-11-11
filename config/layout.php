@@ -45,7 +45,9 @@ function head(string $title, string $tab = '', string $extra = '', string $brand
 
 function foot(): void { ?>
 </main>
-<script src="/assets/js/phone.js?v=1" defer></script>
+<script src="/assets/pl/jquery.min.js" defer></script>
+<script src="/assets/pl/jquery.mask.min.js" defer></script>
+<script src="/assets/js/phone.js?v=2" defer></script>
 </body>
 </html>
 <?php }
