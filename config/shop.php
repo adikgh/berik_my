@@ -151,19 +151,36 @@ function menu_items(int $cid): array {
 			'img' => img_url($r['img']),
 		];
 	}
-	return array_filter($out, fn($c) => $c['items']);
+	// Only starred dishes (the dish or its whole category, admin «Мәзір» ★). Nothing starred = the whole menu.
+	$out = array_filter($out, fn($c) => $c['items']);
+	$rec = menu_starred($cid);
+	if (!$rec) return $out;
+	$star = [];
+	foreach ($out as $id => $k) {
+		$k['items'] = array_values(array_filter($k['items'], fn($i) => isset($rec[$i['id']])));
+		if ($k['items']) $star[$id] = $k;
+	}
+	return $star ?: $out; // starred dishes all off sale: still show the menu
+}
+
+// Starred dishes of a company: [product id => 1 starred itself, 2 via its category]
+function menu_starred(int $cid): array {
+	static $memo = [];
+	if (isset($memo[$cid])) return $memo[$cid];
+	$rec = [];
+	try {
+		$q = db()->prepare("SELECT p.id, p.recommend pr FROM product p JOIN product_catalog k ON k.id = p.catalog_id
+			WHERE k.company_id = ? AND (p.recommend = 1 OR k.recommend = 1)");
+		$q->execute([$cid]);
+		foreach ($q as $r) $rec[(int)$r['id']] = (int)$r['pr'] ? 1 : 2;
+	} catch (PDOException $e) {} // columns not added yet
+	return $memo[$cid] = $rec;
 }
 
 // "Add something else?" dishes, starred in admin «Мәзір»: dishes starred one by one first,
 // then dishes of starred categories, at most 12. Empty list = menu.js picks cheap dishes itself.
 function menu_recommend(int $cid, array $cats, int $max = 12): array {
-	try {
-		$q = db()->prepare("SELECT p.id, k.recommend kr, p.recommend pr FROM product p JOIN product_catalog k ON k.id = p.catalog_id
-			WHERE k.company_id = ? AND (p.recommend = 1 OR k.recommend = 1)");
-		$q->execute([$cid]);
-		$rec = [];
-		foreach ($q as $r) $rec[(int)$r['id']] = (int)$r['pr'] ? 1 : 2;
-	} catch (PDOException $e) { return []; } // columns not added yet
+	$rec = menu_starred($cid);
 	$out = [1 => [], 2 => []];
 	foreach ($cats as $k) foreach ($k['items'] as $i) if (isset($rec[$i['id']])) $out[$rec[$i['id']]][] = $i['id'];
 	return array_slice(array_merge($out[1], $out[2]), 0, $max);
