@@ -15,7 +15,7 @@ function head(string $title, string $tab = '', string $extra = '', string $brand
 <link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
-<link rel="stylesheet" href="/assets/css/main.css?v=8">
+<link rel="stylesheet" href="/assets/css/main.css?v=9">
 <?= $extra ?>
 </head>
 <body<?= $qr ? ' class="qr"' : ($tab === 'sign' ? ' class="sign"' : ($me ? ' class="in"' : '')) ?>>
@@ -113,7 +113,7 @@ function sign_open(string $badge, string $title, string $sub): void { ?>
 
 function sign_close(): void { ?>
 			</div>
-			<a class="sg-made" href="https://gprog.kz" target="_blank" rel="noopener"><svg class="sg-heart" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.5 2.3 4.5 6.2 4.5c2.3 0 3.7 1.3 4.6 2.6l1.2 1.6 1.2-1.6c.9-1.3 2.3-2.6 4.6-2.6 3.9 0 5.8 4 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg><span><b>#gprog</b>-та жасалған</span></a>
+			<a class="sg-made gprog_bl gp_made" href="https://gprog.kz" target="_blank" rel="noopener"><span>#gprog-та</span><span class="gprog_heart"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.5 2.3 4.5 6.2 4.5c2.3 0 3.7 1.3 4.6 2.6l1.2 1.6 1.2-1.6c.9-1.3 2.3-2.6 4.6-2.6 3.9 0 5.8 4 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg></span><span>жасалған</span></a>
 		</section>
 	</div>
 </div>

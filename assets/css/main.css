@@ -190,12 +190,14 @@ a.sg-btn { margin-top: 24px; }
 .sg-note { position: relative; margin: 22px 0 0; padding: 14px 16px 14px 46px; border-radius: 14px; background: #f3f8f5; border: 1px dashed #cfe5d9; color: #56615b; font-size: 13.5px; line-height: 1.5; }
 .sg-note::before { content: "i"; position: absolute; left: 14px; top: 14px; width: 20px; height: 20px; border-radius: 50%; background: var(--green); color: #fff; font: 800 12px/20px Nunito, sans-serif; text-align: center; }
 
-.sg-made { align-self: center; display: inline-flex; align-items: center; gap: 8px; margin-top: 26px; padding: 7px 14px 7px 10px; border-radius: 99px; background: #f6f8f7; border: 1px solid #ebefed; color: #7c8681; font-size: 13px; font-weight: 600; transition: background .15s, color .15s, border-color .15s; }
-.sg-made b { color: var(--text); font-weight: 800; }
-.sg-made:hover { background: #fff0f3; border-color: #ffd5de; color: #c2385d; }
-.sg-heart { width: 16px; height: 16px; fill: #ef4369; animation: sg-beat 1.6s ease-in-out infinite; transform-origin: center; }
-@keyframes sg-beat { 0%, 40%, 100% { transform: scale(1); } 15% { transform: scale(1.22); } 28% { transform: scale(1.08); } }
-@media (prefers-reduced-motion: reduce) { .sg-heart, .sg-tile { animation: none; } }
+.sg-made { align-self: center; margin-top: 26px; }
+.gprog_bl.gp_made{ display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: #a0a6ae; font-size: 13px; font-weight: 600; text-decoration: none; }
+.gprog_bl.gp_made:hover{ color: #0EA768; text-decoration: none; }
+.gprog_bl.gp_made .gprog_heart{ position: relative; width: auto; height: auto; margin: 0; font-size: 13px; color: #e5484d; line-height: 1; display: inline-flex; animation: gp_beat 1.4s ease-in-out infinite; }
+.gprog_bl.gp_made .gprog_heart svg{ display: block; width: 13px; height: 13px; fill: currentColor; }
+@keyframes gp_beat{ 0%,40%,100%{ transform: scale(1) } 20%{ transform: scale(1.25) } }
+@media (prefers-reduced-motion: reduce){ .gp_made .gprog_heart{ animation: none; } }
+@media (prefers-reduced-motion: reduce) { .sg-tile { animation: none; } }
 
 @media (max-width: 880px) {
 	.sg-card { grid-template-columns: 1fr; max-width: 470px; min-height: 0; }
