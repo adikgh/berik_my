@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	// Step 1: send the code
 	elseif (isset($_POST['phone'])) {
 		$phone = phone10((string)$_POST['phone']);
-		if (strlen($phone) !== 10 || $phone[0] !== '7') $err = 'Телефон нөмірін толық жазыңыз: +7 (700) 000-00-00.';
+		if (strlen($phone) !== 10 || $phone[0] !== '7') $err = 'Телефон нөмірін толық жазыңыз: 8 (700) 000-00-00.';
 		elseif ($otp && $otp['sent'] > time() - 60) $err = 'Кодты 1 минуттан кейін қайта сұрауға болады.';
 		elseif (too_many('send', 3)) $err = 'Тым көп код сұралды. 15 минуттан кейін көріңіз.';
 		else {
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 head('Тіркелу', 'sign');
-sign_open('Жеке кабинет', $otp ? 'Кодты жазыңыз' : 'Тіркелу', $otp ? 'Код +7 ' . e(phone_fmt($otp['phone'])) . ' нөміріне жіберілді' : 'Телефоныңызға растау коды келеді. Парольді ұмытсаңыз да осы жерден кіресіз.');
+sign_open('Жеке кабинет', $otp ? 'Кодты жазыңыз' : 'Тіркелу', $otp ? 'Код ' . e(phone_fmt($otp['phone'])) . ' нөміріне жіберілді' : 'Телефоныңызға растау коды келеді. Парольді ұмытсаңыз да осы жерден кіресіз.');
 ?>
 	<?php if ($err): ?><p class="alert"><?= e($err) ?></p><?php endif; ?>
 

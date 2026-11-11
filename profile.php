@@ -85,7 +85,7 @@ if ($first) {
 		<?php endif; ?>
 		<button type="submit" class="sg-btn">Жалғастыру</button>
 	</form>
-	<p class="sg-note">Келесі жолы +7 <?= e(phone_fmt($me['phone'])) ?> нөмірі мен осы парольмен кіресіз.</p>
+	<p class="sg-note">Келесі жолы <?= e(phone_fmt($me['phone'])) ?> нөмірі мен осы парольмен кіресіз.</p>
 	<p class="sg-links"><a href="/exit.php">Шығу</a></p>
 	<?php sign_close(); foot();
 	exit;
@@ -97,7 +97,7 @@ head('Профиль', 'profile');
 ?>
 <div class="pf-hero">
 	<span class="pf-ava"><?= e($ini) ?></span>
-	<div><b><?= e($full) ?></b><span>+7 <?= e(phone_fmt($me['phone'])) ?></span></div>
+	<div><b><?= e($full) ?></b><span><?= e(phone_fmt($me['phone'])) ?></span></div>
 </div>
 
 <h2>Жеке деректер</h2>

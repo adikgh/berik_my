@@ -1,20 +1,19 @@
-// Phone mask after the fixed +7: (700) 000-00-00. Also show/hide password.
+// Phone mask 8 (700) 000-00-00, the same as the other Berik sites. Also show/hide password.
 (function () {
 	function fmt(v) {
 		var d = v.replace(/\D/g, '');
-		// pasted or autofilled +7 / 8 in front
-		if (d.length > 10 && (d[0] === '7' || d[0] === '8')) d = d.slice(1);
-		if (d[0] === '8') d = d.slice(1);
+		// the leading 8 of the mask, or a pasted / autofilled +7 or 8
+		if (d[0] === '8' || (d[0] === '7' && d.length > 10)) d = d.slice(1);
 		d = d.slice(0, 10);
 		var o = '';
-		if (d.length) o = '(' + d.slice(0, 3);
+		if (d.length) o = '8 (' + d.slice(0, 3);
 		if (d.length >= 3) o += ') ' + d.slice(3, 6);
 		if (d.length >= 6) o += '-' + d.slice(6, 8);
 		if (d.length >= 8) o += '-' + d.slice(8, 10);
 		return o;
 	}
 	function check(el) {
-		var n = el.value.replace(/\D/g, '').length;
+		var n = el.value.replace(/\D/g, '').slice(1).length; // without the leading 8
 		el.setCustomValidity(n === 0 && !el.required ? '' : (n === 10 ? '' : 'Нөмірді толық жазыңыз: 10 сан'));
 	}
 	document.querySelectorAll('.js-phone').forEach(function (el) {

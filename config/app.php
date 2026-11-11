@@ -59,11 +59,11 @@ function phone10(string $s): string {
 	return substr(preg_replace('/\D/', '', $s), -10);
 }
 
-// 7074321999 -> (707) 432-19-99, as the phone field shows it after +7
+// 7074321999 -> 8 (707) 432-19-99, as the phone field shows it
 function phone_fmt(string $p): string {
 	$d = preg_replace('/\D/', '', $p);
 	if (strlen($d) !== 10) return $d;
-	return '(' . substr($d, 0, 3) . ') ' . substr($d, 3, 3) . '-' . substr($d, 6, 2) . '-' . substr($d, 8, 2);
+	return '8 (' . substr($d, 0, 3) . ') ' . substr($d, 3, 3) . '-' . substr($d, 6, 2) . '-' . substr($d, 8, 2);
 }
 
 function money(int $n): string {

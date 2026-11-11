@@ -120,11 +120,10 @@ button.ghost { background: var(--card); color: var(--text); border: 1px solid va
 .stamp p { margin: 0; font-size: 15px; }
 .go-menu { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 16px; border-color: var(--green); }
 
-/* Phone field with fixed +7 (login, register, menu) */
+/* Phone field 8 (700) 000-00-00 (login, register, menu) */
 .ph { display: flex; align-items: stretch; border: 1px solid var(--line); border-radius: 10px; background: var(--card); overflow: hidden; }
 .ph:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 16%, transparent); }
-.ph-cc { display: flex; align-items: center; padding: 0 4px 0 14px; font-weight: 700; color: var(--text); }
-.ph input { flex: 1; min-width: 0; border: 0; border-radius: 0; padding-left: 6px; background: transparent; outline: 0; letter-spacing: .3px; }
+.ph input { flex: 1; min-width: 0; border: 0; border-radius: 0; padding-left: 14px; background: transparent; outline: 0; letter-spacing: .3px; }
 .ph input:focus { outline: 0; }
 .pw { position: relative; display: block; }
 .pw input { width: 100%; padding-right: 50px; }
@@ -163,7 +162,6 @@ body.sign .wrap { max-width: none; padding: 0; }
 .sg-form label { color: var(--text); }
 .sg-form input:not(.ph input), .sg-form .ph { min-height: 54px; border-radius: 14px; background: #f6f8f7; border-color: #e3e8e5; font-size: 16px; }
 .sg-form .ph input { font-size: 17px; }
-.sg-form .ph-cc { font-size: 17px; }
 .sg-form .ph:focus-within, .sg-form input:not(.ph input):focus { background: #fff; border-color: var(--green); outline: 0; box-shadow: 0 0 0 4px rgba(14, 167, 104, .14); }
 .sg-form .pw-eye { border-radius: 0 14px 14px 0; }
 .sg-code { text-align: center; font-size: 24px !important; letter-spacing: 10px; font-weight: 800; }

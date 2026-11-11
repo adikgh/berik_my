@@ -70,10 +70,10 @@ function order_card(array $o, array $st): void { ?>
 	</li>
 <?php }
 
-// Phone field: fixed +7 and a mask (700) 000-00-00; the server keeps the last 10 digits
+// Phone field: mask 8 (700) 000-00-00, the same as the other Berik sites; the server keeps the last 10 digits
 function phone_input(string $value = '', bool $required = true, bool $focus = false): string {
-	return '<span class="ph"><span class="ph-cc">+7</span><input type="tel" name="phone" class="js-phone" value="' . e($value !== '' ? phone_fmt($value) : '')
-		. '" inputmode="numeric" maxlength="15" placeholder="(700) 000-00-00" autocomplete="tel-national"'
+	return '<span class="ph"><input type="tel" name="phone" class="js-phone" value="' . e($value !== '' ? phone_fmt($value) : '')
+		. '" inputmode="numeric" maxlength="17" placeholder="8 (700) 000-00-00" autocomplete="tel-national"'
 		. ($required ? ' required' : '') . ($focus ? ' autofocus' : '') . '></span>';
 }
 
