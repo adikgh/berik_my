@@ -153,7 +153,7 @@ $cfg = [
 	'addrs' => $addrs,
 	'card' => (int)$look['card'],
 	'upsell' => (int)$look['upsell'],
-	'upsell_ids' => $look['upsell_ids'],
+	'upsell_ids' => menu_recommend((int)$c['id'], $cats),
 ];
 
 $tpl = $look['tpl'];

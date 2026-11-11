@@ -85,11 +85,10 @@ function menu_set(int $cid): array {
 
 // Look of the menu, set in admin «QR меню» → «Мәзір көрінісі» (company_menu.look, JSON)
 function menu_look(array $s): array {
-	$l = ['tpl' => 0, 'accent' => '#0ea768', 'layout' => 'list', 'photos' => 1, 'search' => 1, 'card' => 1, 'upsell' => 1, 'upsell_ids' => []];
+	$l = ['tpl' => 0, 'accent' => '#0ea768', 'layout' => 'list', 'photos' => 1, 'search' => 1, 'card' => 1, 'upsell' => 1];
 	$j = json_decode((string)($s['look'] ?? ''), true);
 	if (is_array($j)) $l = array_merge($l, array_intersect_key($j, $l));
 	if (!preg_match('/^#[0-9a-f]{6}$/i', (string)$l['accent'])) $l['accent'] = '#0ea768';
-	$l['upsell_ids'] = array_values(array_map('intval', (array)$l['upsell_ids']));
 	$l['tpl'] = in_array((int)$l['tpl'], [1, 2], true) ? (int)$l['tpl'] : 0; // 0 = негізгі, 1 = Шаблон-1, 2 = Шаблон-2
 	return $l;
 }
@@ -153,6 +152,21 @@ function menu_items(int $cid): array {
 		];
 	}
 	return array_filter($out, fn($c) => $c['items']);
+}
+
+// "Add something else?" dishes, starred in admin «Мәзір»: dishes starred one by one first,
+// then dishes of starred categories, at most 12. Empty list = menu.js picks cheap dishes itself.
+function menu_recommend(int $cid, array $cats, int $max = 12): array {
+	try {
+		$q = db()->prepare("SELECT p.id, k.recommend kr, p.recommend pr FROM product p JOIN product_catalog k ON k.id = p.catalog_id
+			WHERE k.company_id = ? AND (p.recommend = 1 OR k.recommend = 1)");
+		$q->execute([$cid]);
+		$rec = [];
+		foreach ($q as $r) $rec[(int)$r['id']] = (int)$r['pr'] ? 1 : 2;
+	} catch (PDOException $e) { return []; } // columns not added yet
+	$out = [1 => [], 2 => []];
+	foreach ($cats as $k) foreach ($k['items'] as $i) if (isset($rec[$i['id']])) $out[$rec[$i['id']]][] = $i['id'];
+	return array_slice(array_merge($out[1], $out[2]), 0, $max);
 }
 
 function zones(int $cid, int $bid): array {
