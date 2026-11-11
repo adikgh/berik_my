@@ -11,7 +11,7 @@ $phone = phone10((string)($_POST['phone'] ?? ''));
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	if (!csrf_ok()) $err = 'Бетті жаңартып, қайта көріңіз.';
 	elseif (too_many('login')) $err = 'Тым көп қате әрекет. 15 минуттан кейін көріңіз.';
-	elseif (strlen($phone) !== 10 || $phone[0] !== '7') $err = 'Телефон нөмірін толық жазыңыз: +7 (700) 000-00-00.';
+	elseif (strlen($phone) !== 10 || $phone[0] !== '7') $err = 'Телефон нөмірін толық жазыңыз: 8 (700) 000-00-00.';
 	else {
 		$q = db()->prepare('SELECT id, password FROM user WHERE phone = ? AND locked IS NULL');
 		$q->execute([$phone]);

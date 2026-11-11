@@ -9,13 +9,13 @@ function head(string $title, string $tab = '', string $extra = '', string $brand
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0EA768">
-<title><?= e($title) ?><?= $qr ? '' : ' · BERIK POS' ?></title>
+<title><?= e($title) ?><?= $qr ? '' : ($tab === 'sign' ? ' · Жеке кабинет' : ' · BERIK POS') ?></title>
 <link rel="icon" href="/assets/img/logo/favicon-32.png">
 <link rel="apple-touch-icon" href="/assets/img/logo/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
-<link rel="stylesheet" href="/assets/css/main.css?v=7">
+<link rel="stylesheet" href="/assets/css/main.css?v=8">
 <?= $extra ?>
 </head>
 <body<?= $qr ? ' class="qr"' : ($tab === 'sign' ? ' class="sign"' : ($me ? ' class="in"' : '')) ?>>
@@ -79,32 +79,41 @@ function phone_input(string $value = '', bool $required = true, bool $focus = fa
 		. ($required ? ' required' : '') . ($focus ? ' autofocus' : '') . '></span>';
 }
 
-// Sign pages (login, register, link): brand panel + form card
+// Sign pages (login, register, link): neutral panel (no product name) + form card
 function sign_open(string $badge, string $title, string $sub): void { ?>
 <div class="sg">
 	<div class="sg-card">
 		<aside class="sg-side">
-			<a class="sg-brand" href="/"><span class="sg-logo"><img src="/assets/img/logo/berik-icon.svg" alt="" width="34" height="34"></span><span>BERIK <b>POS</b></span></a>
+			<a class="sg-brand" href="/"><span class="sg-logo"><svg viewBox="0 0 24 24"><path d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zM3.5 21a8.5 8.5 0 0 1 17 0"/></svg></span><span><?= e($badge) ?></span></a>
 			<div class="sg-pitch">
-				<h2>Сүйікті кафеңіз бір жерде</h2>
-				<ul>
-					<li><svg viewBox="0 0 24 24"><path d="M6 2h12l2 4v15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6zM4 6h16M9 11h6M9 15h6"/></svg>Тапсырыстарыңыз бен статусы</li>
-					<li><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>Кэшбэк пен сыйлықтар</li>
-					<li><svg viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></svg>Мекенжайлар және мәзір</li>
-				</ul>
+				<h2>Сүйікті кафеңіз<br>бір жерде</h2>
+				<p>Тапсырыс, кэшбэк және сыйлықтар бір кабинетте</p>
 			</div>
-			<small>© Berik POS, <?= date('Y') ?></small>
+			<div class="sg-demo" aria-hidden="true">
+				<div class="sg-tile sg-t1">
+					<span class="sg-ic"><svg viewBox="0 0 24 24"><path d="M6 2h12l2 4v15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6zM4 6h16M9 11h6M9 15h6"/></svg></span>
+					<span><b>Тапсырыс №1024</b><small>Курьер жолда</small></span>
+					<i class="sg-live">Жолда</i>
+				</div>
+				<div class="sg-tile sg-t2">
+					<span class="sg-ic"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 6.5C17 4.6 14.8 3.5 12 3.5S7 4.6 7 6.6c0 4.7 10 2.4 10 7.4 0 2-2.2 3.4-5 3.4s-5-1.2-5-3.2"/></svg></span>
+					<span><b>+350 ₸</b><small>Кэшбэк</small></span>
+				</div>
+				<div class="sg-tile sg-t3">
+					<span class="sg-ic"><svg viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg></span>
+					<span><b>Сыйлыққа 2 тапсырыс</b><small class="sg-bar"><i></i></small></span>
+				</div>
+			</div>
 		</aside>
 		<section class="sg-main">
 			<div class="sg-box">
-				<span class="sg-badge"><?= e($badge) ?></span>
 				<h1><?= e($title) ?></h1>
 				<p class="sg-sub"><?= $sub ?></p>
 <?php }
 
 function sign_close(): void { ?>
 			</div>
-			<a class="sg-made" href="https://gprog.kz" target="_blank" rel="noopener">#gprog-та жасалған</a>
+			<a class="sg-made" href="https://gprog.kz" target="_blank" rel="noopener"><svg class="sg-heart" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.5 2.3 4.5 6.2 4.5c2.3 0 3.7 1.3 4.6 2.6l1.2 1.6 1.2-1.6c.9-1.3 2.3-2.6 4.6-2.6 3.9 0 5.8 4 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg><span><b>#gprog</b>-та жасалған</span></a>
 		</section>
 	</div>
 </div>
