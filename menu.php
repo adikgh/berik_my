@@ -162,13 +162,23 @@ head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css
 	. '<style>:root{--green:' . e($look['accent']) . '}</style>', $name);
 // Templates: a soft tile with an emoji stands in for a missing photo; a broken photo falls back to it too
 $media = function (array $i, string $cat) use ($tpl, $look): string {
-	if (!$tpl) return $i['img'] && $look['photos'] ? '<img src="' . e($i['img']) . '" alt="" loading="lazy" onerror="this.remove()">' : '';
 	$img = $i['img'] && $look['photos'] ? '<img src="' . e($i['img']) . '" alt="" loading="lazy" onerror="this.remove()">' : '';
 	return '<div class="mn_ph" style="--h:' . ($i['id'] * 47 % 360) . '"><em aria-hidden="true">' . food_icon($i['name'], $cat) . '</em>' . $img . '</div>';
 };
 ?>
 <div class="mn_tpl<?= $tpl ? ' mn_t' . $tpl : '' ?>">
-<div class="mn_head">
+<?php if ($tpl):
+	// Template top row: where the order goes (table or branch address) and a cart button
+	$bb = $bfix ? (array_values(array_filter($br, fn($b) => (int)$b['id'] === $bfix))[0] ?? null) : ($br[0] ?? null);
+	$place = $table ? 'Үстел №' . $table : trim((string)($bb['address'] ?? ''));
+?>
+<div class="mn_topbar">
+	<span class="mn_tb_ic"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
+	<span class="mn_tb_t"><small><?= $table ? 'Сіз отырған орын' : (isset($types[1]) ? 'Жеткізу · самовывоз' : 'Мекеме') ?></small><b><?= e($place !== '' ? $place : $name) ?></b></span>
+	<?php if ($types): ?><button type="button" class="mn_tcart" aria-label="Себет"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 8h14l-1.2 12.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9zM9 10V6.5a3 3 0 0 1 6 0V10"/></svg><i class="mn_ncnt" hidden>0</i></button><?php endif; ?>
+</div>
+<?php endif; ?>
+<div class="mn_head" id="mn_top">
 	<?php if ($tpl): ?><p class="mn_hi"><?= $table ? 'Қош келдіңіз!' : 'Бүгін не жейміз?' ?></p><?php endif; ?>
 	<h1><?= e($name) ?></h1>
 	<?php if ($table): ?><p class="mn_table">🍽 Үстел №<?= $table ?></p><?php endif; ?>
@@ -179,9 +189,10 @@ $media = function (array $i, string $cat) use ($tpl, $look): string {
 <?php if (!$cats): ?>
 	<p class="empty">Мәзір бос.</p>
 <?php else: ?>
-	<?php if ($look['search']): ?><div class="mn_find"><input type="search" id="mn_q" placeholder="Мәзірден іздеу" autocomplete="off" aria-label="Мәзірден іздеу"></div><?php endif; ?>
+	<?php if ($look['search']): ?><div class="mn_find"><input type="search" id="mn_q" placeholder="Мәзірден іздеу" autocomplete="off" aria-label="Мәзірден іздеу"><?php if ($tpl): ?><button type="button" class="mn_view" aria-label="Тізім не тор"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></button><?php endif; ?></div><?php endif; ?>
 	<nav class="mn_cats" id="cats">
-		<?php foreach ($cats as $id => $k): ?><a href="#cat<?= $id ?>"><?php if ($tpl): ?><i aria-hidden="true"><?= food_icon($k['name'], (string)($k['items'][0]['name'] ?? '')) ?></i><?php endif; ?><span><?= e($k['name']) ?></span></a><?php endforeach; ?>
+		<?php if ($tpl): ?><a href="#mn_top" class="mn_all"><i aria-hidden="true">🍽️</i><span>Барлығы</span></a><?php endif; ?>
+		<?php foreach ($cats as $id => $k): ?><a href="#cat<?= $id ?>"><i aria-hidden="true"<?= ($k['img'] ?? '') !== '' ? ' class="mn_cimg"' : '' ?>><?= cat_pic($k) ?></i><span><?= e($k['name']) ?></span></a><?php endforeach; ?>
 	</nav>
 	<p class="empty mn_none" hidden>Ештеңе табылмады.</p>
 	<?php foreach ($cats as $id => $k): ?>
@@ -189,7 +200,7 @@ $media = function (array $i, string $cat) use ($tpl, $look): string {
 			<h2><?= e($k['name']) ?><?php if ($tpl): ?> <small><?= count($k['items']) ?></small><?php endif; ?></h2>
 			<div class="mn_grid<?= $look['layout'] === 'grid' ? ' mn_tiles' : '' ?>">
 				<?php foreach ($k['items'] as $i): ?>
-					<div class="mn_it" data-id="<?= $i['id'] ?>" data-cat="<?= $id ?>" data-name="<?= e($i['name']) ?>" data-price="<?= $i['price'] ?>" data-desc="<?= e($i['desc']) ?>" data-img="<?= $look['photos'] ? e($i['img']) : '' ?>"<?= $tpl ? ' data-ico="' . e(food_icon($i['name'], $k['name'])) . '" data-h="' . ($i['id'] * 47 % 360) . '"' : '' ?>>
+					<div class="mn_it" data-id="<?= $i['id'] ?>" data-cat="<?= $id ?>" data-name="<?= e($i['name']) ?>" data-price="<?= $i['price'] ?>" data-desc="<?= e($i['desc']) ?>" data-img="<?= $look['photos'] ? e($i['img']) : '' ?>" data-ico="<?= e(food_icon($i['name'], $k['name'])) ?>" data-h="<?= $i['id'] * 47 % 360 ?>">
 						<?= $media($i, $k['name']) ?>
 						<div class="mn_it_b">
 							<b><?= e($i['name']) ?></b>
@@ -213,7 +224,7 @@ $media = function (array $i, string $cat) use ($tpl, $look): string {
 	<div class="mn_box">
 		<button type="button" class="mn_x mn_close" aria-label="Жабу">✕</button>
 		<img class="mn_c_img" alt="" hidden>
-		<?php if ($tpl): ?><div class="mn_c_ph" hidden><em aria-hidden="true"></em></div><?php endif; ?>
+		<div class="mn_c_ph" hidden><em aria-hidden="true"></em></div>
 		<h2 class="mn_c_name"></h2>
 		<p class="mn_c_desc"></p>
 		<p class="mn_c_pr"></p>
@@ -295,6 +306,17 @@ $media = function (array $i, string $cat) use ($tpl, $look): string {
 		<p><a class="btn mn_link" href="#">Тапсырысты көру</a></p>
 	</div>
 </div>
+<?php endif; ?>
+<?php if ($tpl): ?>
+<nav class="mn_nav" aria-label="Мәзір бөлімдері">
+	<a href="#mn_top" class="mn_nv on" data-go="top"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z"/></svg><span>Мәзір</span></a>
+	<?php if ($look['search'] && $cats): ?><a href="#" class="mn_nv" data-go="find"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Іздеу</span></a><?php endif; ?>
+	<?php if ($types && $cats): ?><a href="#" class="mn_nv" data-go="cart"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M5 8h14l-1.2 12.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9zM9 10V6.5a3 3 0 0 1 6 0V10"/></svg><span>Себет</span><i class="mn_ncnt" hidden>0</i></a><?php endif; ?>
+	<?php if (!qr_mode()): ?>
+		<a href="<?= $me ? '/orders.php' : '/login.php' ?>" class="mn_nv"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 3h10l2 3v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6zM9 10h6M9 14h6"/></svg><span><?= $me ? 'Тапсырыстар' : 'Кіру' ?></span></a>
+		<?php if ($me): ?><a href="/profile.php" class="mn_nv"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg><span>Профиль</span></a><?php endif; ?>
+	<?php endif; ?>
+</nav>
 <?php endif; ?>
 </div>
 <?php if ($cats): ?>

@@ -89,7 +89,7 @@ function menu_look(array $s): array {
 	$j = json_decode((string)($s['look'] ?? ''), true);
 	if (is_array($j)) $l = array_merge($l, array_intersect_key($j, $l));
 	if (!preg_match('/^#[0-9a-f]{6}$/i', (string)$l['accent'])) $l['accent'] = '#0ea768';
-	$l['tpl'] = in_array((int)$l['tpl'], [1, 2], true) ? (int)$l['tpl'] : 0; // 0 = негізгі, 1 = Шаблон-1, 2 = Шаблон-2
+	$l['tpl'] = (int)$l['tpl'] >= 1 && (int)$l['tpl'] <= 16 ? (int)$l['tpl'] : 0; // 0 = негізгі, 1..16 = Шаблон-N (assets/css/menu-tN.css)
 	return $l;
 }
 
@@ -131,12 +131,36 @@ function branches(int $cid): array {
 }
 
 // Categories with their dishes (only for sale online, not archived)
+// Category picture for the menu (admin Каталог): photo file in adm uploads/catalog, or an emoji
+function cat_pic_cols(): bool {
+	static $on = null;
+	if ($on === null) {
+		$q = db()->query("SHOW COLUMNS FROM product_catalog LIKE 'icon'");
+		$on = $q && $q->fetch() !== false;
+	}
+	return $on;
+}
+function cat_img_url(string $img): string {
+	if ($img === '') return '';
+	if (preg_match('~^https?://~', $img)) return $img;
+	$host = preg_match('~gprog\.kz$~i', (string)($_SERVER['HTTP_HOST'] ?? '')) ? '//admb.gprog.kz' : '//adm.berik.c';
+	return $host . '/assets/uploads/catalog/' . rawurlencode($img);
+}
+// What sits in the category chip: the photo, else the chosen emoji, else a guessed emoji
+function cat_pic(array $k): string {
+	$ico = ($k['icon'] ?? '') !== '' ? $k['icon'] : food_icon($k['name'], (string)($k['items'][0]['name'] ?? ''));
+	if (($k['img'] ?? '') !== '') return '<img src="' . e($k['img']) . '" alt="" loading="lazy" data-ico="' . e($ico) . '" onerror="this.parentNode.classList.remove(\'mn_cimg\');this.outerHTML=this.dataset.ico">';
+	return e($ico);
+}
+
 function menu_items(int $cid): array {
-	$cats = db()->prepare("SELECT id, COALESCE(NULLIF(name_kz, ''), name_ru) name FROM product_catalog
+	$pic = cat_pic_cols() ? ', img, icon' : '';
+	$cats = db()->prepare("SELECT id, COALESCE(NULLIF(name_kz, ''), name_ru) name$pic FROM product_catalog
 		WHERE company_id = ? AND type = 'main' AND arh IS NULL ORDER BY number, id");
 	$cats->execute([$cid]);
 	$out = [];
-	foreach ($cats as $r) $out[(int)$r['id']] = ['name' => strip_tags((string)$r['name']), 'items' => []];
+	foreach ($cats as $r) $out[(int)$r['id']] = ['name' => strip_tags((string)$r['name']), 'items' => [],
+		'img' => cat_img_url((string)($r['img'] ?? '')), 'icon' => (string)($r['icon'] ?? '')];
 	if (!$out) return [];
 	$p = db()->query("SELECT id, catalog_id, COALESCE(NULLIF(name_kz, ''), name_ru) name, description, price, img FROM product
 		WHERE catalog_id IN (" . implode(',', array_keys($out)) . ") AND arh = 0 AND sale_online = 1 ORDER BY number IS NULL, number, name_kz");
@@ -254,22 +278,25 @@ function client_for(int $cid, string $phone, string $name, string $addr, string 
 	return (int)$cl['id'];
 }
 
-// Telegram to the company chat, like the kassa does. The bot token is read from the kassa config.
+// Telegram to the company chat (company.chat_send / chat_id, the same group as the kassa).
+// The bot token is in this site's own config/tg.php (not in git): <?php return '123:ABC';
 function tg_token(): string {
-	// The kassa folder is a sibling of this site (pos.berik.c locally, another name on live)
-	foreach (glob(__DIR__ . '/../../*/config/var.php') ?: [] as $f)
-		if (preg_match('~\$token\s*=\s*"([^"]+)"~', (string)file_get_contents($f), $m)) return $m[1];
-	return '';
+	$f = __DIR__ . '/tg.php';
+	if (!is_file($f)) return '';
+	$t = require $f;
+	return is_string($t) ? trim($t) : '';
 }
 
 function tg_send(array $c, string $txt): void {
 	if ((int)$c['chat_send'] !== 1 || empty($c['chat_id']) || !function_exists('curl_init')) return;
 	$token = tg_token();
-	if ($token === '') return;
+	if ($token === '') { error_log('telegram: my config/tg.php is missing'); return; }
 	$ch = curl_init('https://api.telegram.org/bot' . $token . '/sendMessage');
 	curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => 5, CURLOPT_TIMEOUT => 10, CURLOPT_POST => true,
 		CURLOPT_POSTFIELDS => ['chat_id' => $c['chat_id'], 'parse_mode' => 'html', 'text' => $txt]]);
-	if (curl_exec($ch) === false) error_log('telegram: ' . curl_error($ch));
+	$res = curl_exec($ch);
+	if ($res === false) error_log('telegram: ' . curl_error($ch));
+	elseif (strpos((string)$res, '"ok":true') === false) error_log('telegram: ' . mb_substr((string)$res, 0, 300));
 	curl_close($ch);
 }
 
@@ -368,7 +395,7 @@ function place_order(array $c, array $in, ?array $me): array {
 	// Telegram, as from the kassa
 	$h = fn($v) => htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
 	$bn = count($br) > 1 ? (array_values(array_filter($br, fn($b) => (int)$b['id'] === $bid))[0]['name'] ?? '') : '';
-	$txt = '<b>Тапсырыс:</b> #' . $num . ' (' . ($src === 'qr' ? 'QR меню' : 'жеке кабинет') . ")\n";
+	$txt = '🌐 <b>Сайттан тапсырыс</b> (' . ($src === 'qr' ? 'QR меню' : 'жеке кабинет') . ")\n<b>Тапсырыс:</b> #" . $num . "\n";
 	foreach (['Точка' => $bn, 'Формат' => $types[$type], 'Үстел' => $table ?: '', 'Аты' => $name, 'Телефон' => $phone, 'Адрес' => $addr, 'Этаж, кв' => $floor_apt, 'Қосымша' => $note] as $k => $v)
 		if ((string)$v !== '') $txt .= "<b>$k:</b> " . $h($v) . "\n";
 	$txt .= "\n<b>Тауарлар:</b>\n";

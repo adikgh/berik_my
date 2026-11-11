@@ -68,6 +68,7 @@
 			it.classList.toggle('on', q > 0);
 			var i = $('.mn_q i', it); if (i) i.textContent = q;
 		});
+		$$('.mn_ncnt').forEach(function (el) { el.textContent = n; el.hidden = !n; });
 		if (!canBuy) return;
 		bar.hidden = !n;
 		$('.mn_cnt', bar).textContent = n;
@@ -197,6 +198,14 @@
 		};
 		var close = function () { sheet.hidden = true; document.body.classList.remove('mn_lock'); };
 		bar.addEventListener('click', open);
+		// Template top bar and bottom menu open the cart too; an empty cart just nudges
+		$$('.mn_tcart, .mn_nv[data-go="cart"]').forEach(function (b) {
+			b.addEventListener('click', function (e) {
+				e.preventDefault();
+				if (Object.keys(cart).length) open();
+				else { b.classList.remove('mn_nudge'); void b.offsetWidth; b.classList.add('mn_nudge'); }
+			});
+		});
 		$('.mn_close', sheet).addEventListener('click', close);
 		sheet.addEventListener('click', function (e) { if (e.target === sheet) close(); });
 		form.addEventListener('change', draw);
@@ -238,6 +247,63 @@
 			});
 		}, { rootMargin: '-45% 0px -50% 0px' });
 		$$('.mn_sec').forEach(function (s) { io.observe(s); });
+	}
+
+	// Template bottom menu: back to the top, search
+	$$('.mn_nv[data-go="top"]').forEach(function (b) {
+		b.addEventListener('click', function (e) { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+	});
+	$$('.mn_nv[data-go="find"]').forEach(function (b) {
+		b.addEventListener('click', function (e) {
+			e.preventDefault();
+			if (!q) return;
+			q.scrollIntoView({ block: 'center', behavior: 'smooth' });
+			setTimeout(function () { q.focus(); }, 250);
+		});
+	});
+
+	// List / grid switch next to the search, remembered in this browser
+	var vb = $('.mn_view'), vkey = 'mn_view_' + M.cid;
+	var setView = function (g) { $$('.mn_grid').forEach(function (el) { el.classList.toggle('mn_tiles', g); }); if (vb) vb.classList.toggle('on', g); };
+	if (vb) {
+		try { var v0 = localStorage.getItem(vkey); if (v0) setView(v0 === 'grid'); else vb.classList.toggle('on', !!$('.mn_tiles')); } catch (e) {}
+		vb.addEventListener('click', function () {
+			var g = !$('.mn_grid.mn_tiles'); setView(g);
+			try { localStorage.setItem(vkey, g ? 'grid' : 'list'); } catch (e) {}
+		});
+	}
+
+	// "All" chip is on while the page is at the top
+	var all = $('.mn_all');
+	if (all) {
+		var allOn = function () {
+			if (window.scrollY > 60) return;
+			chips.forEach(function (a) { a.classList.toggle('on', a === all); });
+			if (cbar0) cbar0.scrollTo({ left: 0 });
+		};
+		var cbar0 = $('#cats');
+		window.addEventListener('scroll', allOn, { passive: true });
+		all.addEventListener('click', function (e) { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
+		allOn();
+	}
+
+	// Arc categories (a template sets --arc: 1 on .mn_cats): each chip gets --a, 0 in the middle .. 1 at the edges
+	var cbar = $('#cats');
+	if (cbar && chips.length && getComputedStyle(cbar).getPropertyValue('--arc').trim() === '1') {
+		var arcOn = false;
+		var arc = function () {
+			arcOn = false;
+			var r = cbar.getBoundingClientRect(), mid = r.left + r.width / 2, half = r.width / 2 || 1;
+			chips.forEach(function (a) {
+				var b = a.getBoundingClientRect(), d = Math.min(1, Math.abs(b.left + b.width / 2 - mid) / half);
+				a.style.setProperty('--a', d.toFixed(3));
+			});
+		};
+		var arcLater = function () { if (!arcOn) { arcOn = true; requestAnimationFrame(arc); } };
+		cbar.addEventListener('scroll', arcLater, { passive: true });
+		window.addEventListener('resize', arcLater);
+		if (!$('a.on', cbar)) chips[0].classList.add('on');
+		arc();
 	}
 
 	draw();

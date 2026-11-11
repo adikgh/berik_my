@@ -1,0 +1,88 @@
+/* Шаблон-12: наубайхана: кремді фон, какао мен карамель, жасыл себет */
+@import url("https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,600;0,7..72,700;1,7..72,600&display=swap");
+body:has(.mn_t12) { --bg: #fff3dd; --card: #fffaf0; --text: #492115; --muted: #8b6b58; --line: #f2dfbf; background: #ffe9c4 linear-gradient(180deg, #fee3b4 0, #fff3dd 420px) no-repeat; }
+body:has(.mn_t12) .top { background: transparent; border-bottom: 0; }
+.mn_t12 { --ink: #492115; --soft: #fbe8c8; --on: #fff; font-family: 'Nunito', system-ui, sans-serif; }
+body:has(.mn_t12) .top .brand { font-family: 'Nunito', system-ui, sans-serif; }
+.mn_t12 h1, .mn_t12 h2, .mn_t12 .mn_c_name { font-family: 'Literata', Georgia, serif; }
+/* Text on the accent colour: white on a dark accent, black on a light one */
+@supports (color: lch(from red l c h)) { .mn_t12 { --on: lch(from var(--green) calc((70 - l) * infinity) 0 0); } }
+.mn_t12 .mn_it:not(.on) .mn_plus, .mn_t12 .mn_c_add, .mn_t12 button[type=submit], .mn_t12 .mn_bar .mn_cnt, .mn_t12 .mn_up_it.ok .mn_up_add, .mn_t12 .mn_ok, .mn_t12 .btn { color: var(--on); }
+
+/* Emoji tile for a dish with no photo; a real photo covers it */
+.mn_tpl .mn_ph { position: relative; display: grid; place-items: center; overflow: hidden; flex: none;
+	background: radial-gradient(circle at 32% 28%, hsl(var(--h) 90% 94%), hsl(var(--h) 65% 82%)); }
+.mn_tpl .mn_ph em { font-style: normal; font-size: 42px; line-height: 1; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .18)); }
+.mn_tpl .mn_ph img { position: absolute; inset: 0; order: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 0; background: none; }
+.mn_tpl .mn_c_ph { display: grid; place-items: center; width: 100%; aspect-ratio: 1 / .72;
+	background: radial-gradient(circle at 50% 40%, hsl(var(--h, 25) 90% 94%), hsl(var(--h, 25) 65% 82%)); }
+.mn_tpl .mn_c_ph[hidden] { display: none; }
+.mn_tpl .mn_c_ph em { font-style: normal; font-size: 110px; line-height: 1; filter: drop-shadow(0 14px 18px rgba(0, 0, 0, .2)); }
+.mn_t12 .mn_card .mn_box > .mn_c_ph { margin: 0 !important; }
+.mn_tpl .mn_up_it .mn_ph { width: 100%; aspect-ratio: 1; border-radius: 10px; }
+.mn_tpl .mn_up_it .mn_ph em { font-size: 38px; }
+.mn_tpl .mn_up_list { scroll-padding: 0 16px; }
+.mn_t12 .mn_sec { scroll-margin-top: 80px; }
+.mn_t12 .mn_cats a i { font-style: normal; }
+.mn_t12 .mn_cats a { display: inline-flex; align-items: center; gap: 6px; }
+.mn_t12 .mn_tiles .mn_it > .mn_ph { width: 100%; height: auto; aspect-ratio: 1; }
+.mn_t12 .mn_tiles .mn_ph em { font-size: 54px; }
+.mn_t12 .mn_pr { white-space: nowrap; }
+.mn_t12 .mn_tiles .mn_it_b .row { flex-wrap: wrap; row-gap: 6px; }
+
+.mn_t12 .mn_hi { margin: 0; color: var(--green); font-family: 'Literata', Georgia, serif; font-style: italic; font-weight: 600; font-size: 16px; }
+.mn_t12 .mn_head h1 { font-size: 34px; font-weight: 700; color: var(--ink); letter-spacing: -.5px; }
+.mn_t12 .mn_table { background: var(--ink); color: #ffe7bd; }
+.mn_t12 .mn_note { background: rgba(255, 250, 240, .8); }
+.mn_t12 .mn_find input { padding: 15px 16px 15px 46px; border-radius: 18px; background: var(--card); box-shadow: 0 6px 18px rgba(73, 33, 21, .08); }
+.mn_t12 .mn_find::before { left: 18px; }
+.mn_t12 .mn_find input:focus { outline: 2px solid var(--green); }
+/* Categories: round photos on an arc, the chosen one bigger in the middle (menu.js sets --a: 0 middle .. 1 edge) */
+.mn_t12 .mn_cats { --arc: 1; align-items: flex-start; gap: 4px; margin: 8px -16px 0; padding: 22px calc(50% - 44px) 16px; scroll-snap-type: x proximity;
+	background: radial-gradient(160% 300px at 50% 330px, #fff4de 99.6%, transparent 100%), #fde4b8; }
+.mn_t12 .mn_cats a { display: grid; justify-items: center; align-content: start; gap: 8px; flex: none; width: 88px; padding: 0; border-radius: 0; background: none;
+	color: #a2836d; font-weight: 600; font-size: 13px; scroll-snap-align: center;
+	transform: translateY(calc(var(--a, 0) * 30px)) scale(calc(1 - var(--a, 0) * .08)); transition: transform .12s linear, color .15s; }
+.mn_t12 .mn_cats a i { display: grid; place-items: center; width: 62px; height: 62px; margin-top: 7px; border-radius: 50%; background: #fffaf0; font-size: 30px;
+	box-shadow: 0 8px 18px rgba(73, 33, 21, .1); transition: width .2s, height .2s, margin .2s, font-size .2s, box-shadow .2s; }
+.mn_t12 .mn_cats a i img { width: 100%; height: 100%; }
+.mn_t12 .mn_cats a span { max-width: 86px; overflow: hidden; text-overflow: ellipsis; }
+.mn_t12 .mn_cats a.on { background: none; color: var(--ink); font-weight: 800; }
+.mn_t12 .mn_cats a.on i { width: 76px; height: 76px; margin-top: 0; font-size: 38px; box-shadow: 0 12px 26px rgba(73, 33, 21, .18); }
+.mn_t12 .mn_cats a.on span::after { content: ""; display: block; width: 30px; height: 2px; margin: 7px auto 0; border-radius: 2px; background: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .mn_t12 .mn_cats a, .mn_t12 .mn_cats a i { transition: none; } }
+.mn_t12 .mn_sec { scroll-margin-top: 190px; }
+.mn_t12 .mn_sec h2 { display: flex; align-items: baseline; gap: 8px; font-size: 24px; font-weight: 700; color: var(--ink); margin: 26px 0 10px; }
+.mn_t12 .mn_sec h2 small { color: var(--green); font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800; }
+.mn_t12 .mn_grid { gap: 12px; }
+.mn_t12 .mn_it { gap: 14px; padding: 12px; border: 0; border-radius: 26px; background: var(--card); box-shadow: 0 6px 18px rgba(73, 33, 21, .06); }
+.mn_t12 .mn_it > .mn_ph { order: 0; width: 98px; height: 98px; border-radius: 50%; }
+.mn_t12 .mn_it_b > b { color: var(--ink); font-weight: 800; }
+.mn_t12 .mn_pr { color: var(--ink); font-size: 16px; }
+.mn_t12 .mn_tiles .mn_it { padding: 14px 10px 12px; gap: 10px; text-align: center; }
+.mn_t12 .mn_tiles .mn_it > .mn_ph { width: 78%; margin: 0 auto; border-radius: 50%; }
+.mn_t12 .mn_q { background: var(--soft); }
+.mn_t12 .mn_q button { color: var(--ink); }
+.mn_t12 .mn_it:not(.on) .mn_plus { width: 36px; height: 36px; }
+.mn_t12 .mn_bar { background: #2f6b45; box-shadow: 0 12px 28px rgba(47, 107, 69, .35); }
+.mn_t12 .mn_bar .mn_cnt { background: #ffe7bd; color: #2f6b45; }
+.mn_t12 .mn_card .mn_box { border-radius: 30px 30px 0 0; background: var(--card); }
+.mn_t12 .mn_c_foot { background: var(--card); border-top-color: var(--line); }
+.mn_t12 .mn_c_img { aspect-ratio: 1 / .8; background: var(--soft); }
+.mn_t12 .mn_c_pr { display: inline-block; padding: 5px 14px; border-radius: 99px; background: var(--soft); color: var(--ink); }
+.mn_t12 .mn_c_q { background: var(--soft); }
+.mn_t12 .mn_form input, .mn_t12 .mn_form select { background: var(--soft); }
+.mn_t12 .mn_up_it { background: var(--soft); }
+.mn_tpl.mn_t12 .mn_up_it .mn_ph { border-radius: 50%; }
+@media (min-width: 720px) { .mn_t12 .mn_card .mn_box { border-radius: 30px; } }
+
+/* Full layout: "Жеткізу" row with round buttons, serif headline, green mini-cart above a floating pill bar */
+body:has(.mn_t12) .top { display: none; }
+.mn_t12 .mn_tb_ic, .mn_t12 .mn_tcart { background: var(--card); color: var(--ink); box-shadow: 0 4px 12px rgba(73, 33, 21, .08); }
+.mn_t12 .mn_tcart .mn_ncnt { background: #2f6b45; }
+.mn_t12 .mn_view { background: var(--ink); color: #ffe7bd; }
+.mn_t12 .mn_all { display: grid; }
+.mn_t12 .mn_nav { background: var(--card); box-shadow: 0 12px 30px rgba(73, 33, 21, .18); }
+.mn_t12 .mn_nv { color: #a2836d; }
+.mn_t12 .mn_nv.on { background: var(--ink); color: #ffe7bd; }
+.mn_t12 .mn_nv .mn_ncnt { background: #2f6b45; box-shadow: 0 0 0 2px var(--card); }

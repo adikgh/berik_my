@@ -1,0 +1,83 @@
+/* Шаблон-4: ақшыл күлгін фон, қара-сұр, лайм батырмалар, үлкен тақырып */
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap");
+body:has(.mn_t4) { --bg: #ecebfb; --card: #fff; --text: #2f2f2f; --muted: #77768a; --line: #e3e1f3; background: #ecebfb linear-gradient(180deg, #dfdcfa 0, #ecebfb 300px) no-repeat; }
+body:has(.mn_t4) .top { background: transparent; border-bottom: 0; }
+.mn_t4 { --ink: #2f2f2f; --soft: #f3f2fc; --on: #fff; font-family: 'Montserrat', system-ui, sans-serif; }
+body:has(.mn_t4) .top .brand { font-family: 'Montserrat', system-ui, sans-serif; }
+/* Text on the accent colour: white on a dark accent, black on a light one */
+@supports (color: lch(from red l c h)) { .mn_t4 { --on: lch(from var(--green) calc((70 - l) * infinity) 0 0); } }
+.mn_t4 .mn_it:not(.on) .mn_plus, .mn_t4 .mn_c_add, .mn_t4 button[type=submit], .mn_t4 .mn_bar .mn_cnt, .mn_t4 .mn_up_it.ok .mn_up_add, .mn_t4 .mn_ok, .mn_t4 .btn { color: var(--on); }
+
+/* Emoji tile for a dish with no photo; a real photo covers it */
+.mn_tpl .mn_ph { position: relative; display: grid; place-items: center; overflow: hidden; flex: none;
+	background: radial-gradient(circle at 32% 28%, hsl(var(--h) 90% 96%), hsl(var(--h) 65% 86%)); }
+.mn_tpl .mn_ph em { font-style: normal; font-size: 42px; line-height: 1; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .18)); }
+.mn_tpl .mn_ph img { position: absolute; inset: 0; order: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 0; background: none; }
+.mn_tpl .mn_c_ph { display: grid; place-items: center; width: 100%; aspect-ratio: 1 / .72;
+	background: radial-gradient(circle at 50% 40%, hsl(var(--h, 25) 90% 96%), hsl(var(--h, 25) 65% 86%)); }
+.mn_tpl .mn_c_ph[hidden] { display: none; }
+.mn_tpl .mn_c_ph em { font-style: normal; font-size: 110px; line-height: 1; filter: drop-shadow(0 14px 18px rgba(0, 0, 0, .2)); }
+.mn_t4 .mn_card .mn_box > .mn_c_ph { margin: 0 !important; }
+.mn_tpl .mn_up_it .mn_ph { width: 100%; aspect-ratio: 1; border-radius: 10px; }
+.mn_tpl .mn_up_it .mn_ph em { font-size: 38px; }
+.mn_tpl .mn_up_list { scroll-padding: 0 16px; }
+.mn_t4 .mn_sec { scroll-margin-top: 80px; }
+.mn_t4 .mn_cats a i { font-style: normal; }
+.mn_t4 .mn_cats a { display: inline-flex; align-items: center; gap: 6px; }
+.mn_t4 .mn_tiles .mn_it > .mn_ph { width: 100%; height: auto; aspect-ratio: 1; }
+.mn_t4 .mn_tiles .mn_ph em { font-size: 54px; }
+.mn_t4 .mn_pr { white-space: nowrap; }
+.mn_t4 .mn_tiles .mn_it_b .row { flex-wrap: wrap; row-gap: 6px; }
+
+.mn_t4 .mn_hi { margin: 0 0 2px; color: #77768a; font-weight: 600; font-size: 14px; }
+.mn_t4 .mn_head h1 { font-size: 40px; line-height: 1.02; font-weight: 900; letter-spacing: -1.4px; color: var(--ink); }
+.mn_t4 .mn_table { background: var(--ink); color: var(--green); }
+.mn_t4 .mn_note { background: rgba(255, 255, 255, .7); }
+.mn_t4 .mn_find input { padding: 15px 16px 15px 46px; border-radius: 99px; background: #fff; }
+.mn_t4 .mn_find::before { left: 18px; }
+.mn_t4 .mn_find input:focus { outline: 2px solid var(--ink); }
+.mn_t4 .mn_cats { gap: 8px; background: rgba(236, 235, 251, .9); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.mn_t4 .mn_cats a { padding: 10px 16px 10px 12px; border-radius: 99px; background: #fff; color: var(--ink); font-weight: 700; }
+.mn_t4 .mn_cats a i { font-size: 18px; }
+.mn_t4 .mn_cats a.on { background: var(--ink); color: #fff; }
+.mn_t4 .mn_sec h2 { display: flex; align-items: baseline; gap: 8px; font-size: 26px; font-weight: 900; letter-spacing: -.8px; margin: 26px 0 10px; color: var(--ink); }
+.mn_t4 .mn_sec h2 small { color: #9a98b5; font-size: 14px; font-weight: 700; letter-spacing: 0; }
+.mn_t4 .mn_grid { gap: 12px; }
+.mn_t4 .mn_it { gap: 14px; padding: 12px; border: 0; border-radius: 26px; background: #fff; }
+.mn_t4 .mn_it > .mn_ph { order: 0; width: 100px; height: 100px; border-radius: 20px; }
+.mn_t4 .mn_it_b > b { font-weight: 800; font-size: 15.5px; color: var(--ink); }
+.mn_t4 .mn_pr { font-size: 17px; font-weight: 800; color: var(--ink); }
+.mn_t4 .mn_tiles .mn_it { padding: 8px 8px 12px; gap: 8px; }
+.mn_t4 .mn_tiles .mn_it > .mn_ph { border-radius: 20px; }
+.mn_t4 .mn_tiles .mn_it_b { padding: 0 4px; }
+.mn_t4 .mn_q { background: var(--ink); }
+.mn_t4 .mn_q button { background: var(--ink); color: #fff; box-shadow: none; }
+.mn_t4 .mn_q i { color: #fff; }
+.mn_t4 .mn_it:not(.on) .mn_q { background: none; }
+.mn_t4 .mn_it:not(.on) .mn_plus { width: 38px; height: 38px; background: var(--ink); color: var(--green); font-size: 22px; }
+.mn_t4 .mn_bar { background: var(--ink); }
+.mn_t4 .mn_c_add, .mn_t4 button[type=submit] { font-weight: 800; }
+.mn_t4 .mn_card .mn_box { border-radius: 30px 30px 0 0; }
+.mn_t4 .mn_c_img { aspect-ratio: 1 / .8; background: #dfdcfa; }
+.mn_tpl.mn_t4 .mn_c_ph { background: radial-gradient(circle at 50% 42%, #f6f5ff, #d8d5f7); }
+.mn_t4 .mn_c_name { font-weight: 900; letter-spacing: -.6px; }
+.mn_t4 .mn_c_pr { font-size: 24px; font-weight: 900; }
+.mn_t4 .mn_up_it { background: var(--soft); }
+@media (min-width: 720px) { .mn_t4 .mn_card .mn_box { border-radius: 30px; } }
+
+/* Full layout: address + round buttons, dark promo card, lavender photo tiles for categories, five round buttons below (dark = open) */
+body:has(.mn_t4) .top { display: none; }
+.mn_t4 .mn_tb_ic, .mn_t4 .mn_tcart { background: #fff; box-shadow: none; }
+.mn_t4 .mn_tcart .mn_ncnt { background: var(--green); color: var(--on); }
+.mn_t4 .mn_view { background: var(--ink); color: var(--green); }
+.mn_t4 .mn_note { position: relative; padding: 20px 96px 20px 18px; border-radius: 26px; background: var(--ink); color: #fff; font-size: 15px; font-weight: 600; overflow: hidden; }
+.mn_t4 .mn_note::after { content: ""; position: absolute; right: -30px; bottom: -40px; width: 120px; height: 120px; border-radius: 50%; background: var(--green); opacity: .9; }
+.mn_t4 .mn_cats { gap: 10px; }
+.mn_t4 .mn_cats a { flex-direction: column; gap: 6px; min-width: 86px; padding: 10px 8px 8px; border-radius: 22px; background: #dbd9f8; font-size: 12.5px; }
+.mn_t4 .mn_cats a i { font-size: 32px; }
+.mn_t4 .mn_cats a.on { background: var(--ink); color: #fff; }
+.mn_t4 .mn_nav { gap: 8px; padding: 8px; background: #fff; box-shadow: 0 12px 30px rgba(47, 47, 47, .16); }
+.mn_t4 .mn_nv { width: 48px; height: 48px; min-width: 0; padding: 0; justify-content: center; border-radius: 50%; background: #f3f2fc; color: var(--ink); }
+.mn_t4 .mn_nv.on { background: var(--ink); color: var(--green); }
+.mn_t4 .mn_nv.on span { display: none; }
+.mn_t4 .mn_nv .mn_ncnt { background: var(--green); color: var(--on); box-shadow: 0 0 0 2px #fff; }
