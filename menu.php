@@ -158,6 +158,7 @@ $cfg = [
 
 $tpl = $look['tpl'];
 $tcss = $tpl ? '<link rel="stylesheet" href="/assets/css/menu-t' . $tpl . '.css?v=' . @filemtime(__DIR__ . '/assets/css/menu-t' . $tpl . '.css') . '">' : '';
+$GLOBALS['mn_nav'] = (bool)$tpl;
 head('Мәзір · ' . $name, 'menu', '<link rel="stylesheet" href="/assets/css/menu.css?v=' . @filemtime(__DIR__ . '/assets/css/menu.css') . '">' . $tcss
 	. '<style>:root{--green:' . e($look['accent']) . '}</style>', $name);
 // Templates: a soft tile with an emoji stands in for a missing photo; a broken photo falls back to it too
@@ -317,6 +318,8 @@ $media = function (array $i, string $cat) use ($tpl, $look): string {
 	<?php if (!qr_mode()): ?>
 		<a href="<?= $me ? '/orders.php' : '/login.php' ?>" class="mn_nv"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 3h10l2 3v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6zM9 10h6M9 14h6"/></svg><span><?= $me ? 'Тапсырыстар' : 'Кіру' ?></span></a>
 		<?php if ($me): ?><a href="/profile.php" class="mn_nv"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg><span>Профиль</span></a><?php endif; ?>
+	<?php else: // QR: the client can sign in to his own account (name and phone fill in, orders go to his account) ?>
+		<a href="<?= $me ? '/exit.php' : '/login.php' ?>" class="mn_nv"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg><span><?= $me ? 'Шығу' : 'Кіру' ?></span></a>
 	<?php endif; ?>
 </nav>
 <?php endif; ?>

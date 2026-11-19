@@ -5,10 +5,10 @@ require_once __DIR__ . '/config/notify.php';
 require_once __DIR__ . '/config/layout.php';
 
 if (!notify_on()) { header('Location: /login.php'); exit; }
-if (me()) { header('Location: /'); exit; }
+if (me()) { header('Location: ' . (qr_mode() ? '/menu.php' : '/')); exit; }
 
 $err = '';
-$otp = $_SESSION['otp'] ?? null; // ['phone', 'hash', 'exp', 'sent']
+$otp = $_SESSION['reg_otp'] ?? null; // ['phone', 'hash', 'exp', 'sent']
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	if (!csrf_ok()) $err = 'Бетті жаңартып, қайта көріңіз.';
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 			hit('send');
 			$code = (string)random_int(1000, 9999);
 			if (send_code($phone, $code)) {
-				$otp = $_SESSION['otp'] = [
+				$otp = $_SESSION['reg_otp'] = [
 					'phone' => $phone,
 					'hash' => password_hash($code, PASSWORD_DEFAULT),
 					'exp' => time() + 300,
@@ -36,8 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 	// Step 2: check the code
 	elseif (isset($_POST['code']) && $otp) {
-		if ($otp['exp'] < time()) { $err = 'Кодтың уақыты өтті, жаңасын сұраңыз.'; $otp = null; unset($_SESSION['otp']); }
-		elseif (too_many('code')) { $err = 'Тым көп қате. Жаңа код сұраңыз.'; $otp = null; unset($_SESSION['otp']); }
+		if ($otp['exp'] < time()) { $err = 'Кодтың уақыты өтті, жаңасын сұраңыз.'; $otp = null; unset($_SESSION['reg_otp']); }
+		elseif (too_many('code')) { $err = 'Тым көп қате. Жаңа код сұраңыз.'; $otp = null; unset($_SESSION['reg_otp']); }
 		elseif (!password_verify(preg_replace('/\D/', '', (string)$_POST['code']), $otp['hash'])) { hit('code'); $err = 'Код қате.'; }
 		else {
 			$q = db()->prepare('SELECT id, locked FROM user WHERE phone = ?');
@@ -49,15 +49,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 					db()->prepare('INSERT INTO user (phone) VALUES (?)')->execute([$otp['phone']]);
 					$uid = (int)db()->lastInsertId();
 				} else $uid = (int)$u['id'];
-				unset($_SESSION['otp'], $_SESSION['test_code']);
+				unset($_SESSION['reg_otp'], $_SESSION['test_code']);
 				login_as($uid, true);
-				header('Location: /profile.php');
+				header('Location: ' . (qr_mode() ? '/menu.php' : '/profile.php'));
 				exit;
 			}
 		}
 	}
 
-	elseif (isset($_POST['back'])) { $otp = null; unset($_SESSION['otp']); }
+	elseif (isset($_POST['back'])) { $otp = null; unset($_SESSION['reg_otp']); }
 }
 
 head('Тіркелу', 'sign');

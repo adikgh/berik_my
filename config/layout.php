@@ -9,7 +9,7 @@ function head(string $title, string $tab = '', string $extra = '', string $brand
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0EA768">
-<title><?= e($title) ?><?= $qr ? '' : ($tab === 'sign' ? ' · Жеке кабинет' : ' · BERIK POS') ?></title>
+<title><?= e($title) ?><?= $tab === 'sign' ? ' · Жеке кабинет' : ($qr ? '' : ' · BERIK POS') ?></title>
 <link rel="icon" href="/assets/img/logo/favicon-32.png">
 <link rel="apple-touch-icon" href="/assets/img/logo/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.json">
@@ -18,11 +18,12 @@ function head(string $title, string $tab = '', string $extra = '', string $brand
 <link rel="stylesheet" href="/assets/css/main.css?v=9">
 <?= $extra ?>
 </head>
-<body<?= $qr ? ' class="qr"' : ($tab === 'sign' ? ' class="sign"' : ($me ? ' class="in"' : '')) ?>>
+<body<?= $tab === 'sign' ? ' class="sign"' : ($qr ? ' class="qr"' : ($me ? ' class="in"' : '')) ?>>
 <?php if ($tab !== 'sign' && ($qr || !$me)): // signed-in cabinet has no top bar; Шығу is in Профиль ?>
 <header class="top">
 	<?php if ($qr): ?>
 		<a class="brand" href="/menu.php"><img src="/assets/img/logo/berik-mark.svg" alt="" width="32" height="32"><span class="cmp"><?= e($brand !== '' ? $brand : 'Мәзір') ?></span></a>
+		<?php if ($tab === 'menu' && empty($GLOBALS['mn_nav'])): // menu templates with the bottom bar have Кіру there ?><a class="out" href="<?= me() ? '/exit.php' : '/login.php' ?>"><?= me() ? 'Шығу' : 'Кіру' ?></a><?php endif; ?>
 	<?php else: ?>
 		<a class="brand" href="/"><img src="/assets/img/logo/berik-mark.svg" alt="" width="32" height="32"><span>BERIK <b>POS</b></span></a>
 		<?php if ($tab === 'menu'): ?><a class="out" href="/login.php">Кіру</a><?php endif; ?>
