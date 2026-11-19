@@ -11,10 +11,10 @@
 	var items = {}, order = [];
 	$$('.mn_it').forEach(function (el) {
 		var d = el.dataset;
-		items[d.id] = { id: d.id, el: el, cat: d.cat, name: d.name, price: +d.price, desc: d.desc || '', img: d.img || '', ico: d.ico || '', h: d.h || 0 };
+		items[d.id] = { id: d.id, el: el, cat: d.cat, name: d.name, price: +d.price, desc: d.desc || '', img: d.img || '', ico: d.ico || '', h: d.h || 0, stop: d.stop === '1' };
 		order.push(d.id);
 	});
-	Object.keys(cart).forEach(function (id) { if (!items[id] || !(cart[id] > 0)) delete cart[id]; });
+	Object.keys(cart).forEach(function (id) { if (!items[id] || items[id].stop || !(cart[id] > 0)) delete cart[id]; }); // стоптағы тағам себеттен шығады
 
 	var bar = $('.mn_bar'), sheet = $('.mn_sheet:not(.mn_done):not(.mn_card)'), done = $('.mn_done'), form = $('.mn_form');
 	var card = $('.mn_card'), canBuy = !!form;
@@ -34,11 +34,11 @@
 	function upsell(skip, n, cap) {
 		if (!M.upsell) return [];
 		if (M.upsell_ids && M.upsell_ids.length) // chosen in admin
-			return M.upsell_ids.map(String).filter(function (id) { return items[id] && !cart[id] && !(cur && cur.id === id); }).map(function (id) { return items[id]; }).slice(0, n);
+			return M.upsell_ids.map(String).filter(function (id) { return items[id] && !items[id].stop && !cart[id] && !(cur && cur.id === id); }).map(function (id) { return items[id]; }).slice(0, n);
 		var by = {}, cats = [];
 		order.forEach(function (id) {
 			var it = items[id];
-			if (cart[id] || skip[it.cat] === true || (cap && it.price > cap)) return;
+			if (it.stop || cart[id] || skip[it.cat] === true || (cap && it.price > cap)) return;
 			if (!by[it.cat]) { by[it.cat] = []; cats.push(it.cat); }
 			by[it.cat].push(it);
 		});
@@ -97,6 +97,7 @@
 	}
 
 	function add(id, d) {
+		if (d > 0 && items[id] && items[id].stop) return; // стоп-лист
 		cart[id] = Math.max(0, Math.min(99, (cart[id] || 0) + d));
 		if (!cart[id]) delete cart[id];
 		save(); draw();
@@ -112,7 +113,9 @@
 	function drawCard() {
 		if (!canBuy || !cur) return;
 		$('.mn_c_q i', card).textContent = cq;
-		$('.mn_c_add', card).textContent = (cart[cur.id] ? 'Тағы қосу · ' : 'Қосу · ') + money(cur.price * cq);
+		var ab = $('.mn_c_add', card); ab.disabled = !!cur.stop;
+		if (cur.stop) { ab.textContent = 'Қазір жоқ'; return; }
+		ab.textContent = (cart[cur.id] ? 'Тағы қосу · ' : 'Қосу · ') + money(cur.price * cq);
 	}
 	function openCard(id, push) {
 		cur = items[id]; if (!cur) return;

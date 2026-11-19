@@ -183,7 +183,7 @@ $media = function (array $i, string $cat) use ($tpl, $look): string {
 	<h1><?= e($name) ?></h1>
 	<?php if ($table): ?><p class="mn_table">🍽 Үстел №<?= $table ?></p><?php endif; ?>
 	<?php if (trim((string)$s['note']) !== ''): ?><p class="mn_note"><?= nl2br(e((string)$s['note'])) ?></p><?php endif; ?>
-	<?php if (!$types): ?><p class="alert">Қазір мәзірден тапсырыс қабылданбайды, тек қарауға болады.</p><?php endif; ?>
+	<?php if (!$types): ?><p class="alert"><?= plan_order_off((int)$c['id']) ? 'Онлайн тапсырыс уақытша қолжетімсіз. Мәзірді қарауға болады.' : 'Қазір мәзірден тапсырыс қабылданбайды, тек қарауға болады.' ?></p><?php endif; ?>
 </div>
 
 <?php if (!$cats): ?>
@@ -200,14 +200,16 @@ $media = function (array $i, string $cat) use ($tpl, $look): string {
 			<h2><?= e($k['name']) ?><?php if ($tpl): ?> <small><?= count($k['items']) ?></small><?php endif; ?></h2>
 			<div class="mn_grid<?= $look['layout'] === 'grid' ? ' mn_tiles' : '' ?>">
 				<?php foreach ($k['items'] as $i): ?>
-					<div class="mn_it" data-id="<?= $i['id'] ?>" data-cat="<?= $id ?>" data-name="<?= e($i['name']) ?>" data-price="<?= $i['price'] ?>" data-desc="<?= e($i['desc']) ?>" data-img="<?= $look['photos'] ? e($i['img']) : '' ?>" data-ico="<?= e(food_icon($i['name'], $k['name'])) ?>" data-h="<?= $i['id'] * 47 % 360 ?>">
+					<div class="mn_it<?= $i['stop'] ? ' mn_it_stop' : '' ?>"<?= $i['stop'] ? ' data-stop="1"' : '' ?> data-id="<?= $i['id'] ?>" data-cat="<?= $id ?>" data-name="<?= e($i['name']) ?>" data-price="<?= $i['price'] ?>" data-desc="<?= e($i['desc']) ?>" data-img="<?= $look['photos'] ? e($i['img']) : '' ?>" data-ico="<?= e(food_icon($i['name'], $k['name'])) ?>" data-h="<?= $i['id'] * 47 % 360 ?>">
 						<?= $media($i, $k['name']) ?>
 						<div class="mn_it_b">
 							<b><?= e($i['name']) ?></b>
 							<?php if ($i['desc'] !== ''): ?><small><?= e($i['desc']) ?></small><?php endif; ?>
 							<div class="row">
 								<span class="mn_pr"><?= money($i['price']) ?></span>
-								<?php if ($types): ?>
+								<?php if ($i['stop']): ?>
+									<span class="mn_stop">Қазір жоқ</span>
+								<?php elseif ($types): ?>
 									<span class="mn_q"><button type="button" class="mn_minus" aria-label="Азайту">−</button><i>0</i><button type="button" class="mn_plus" aria-label="Қосу">+</button></span>
 								<?php endif; ?>
 							</div>

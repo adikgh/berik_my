@@ -169,3 +169,8 @@ body:has(.mn_tpl .mn_nav) .mn_bar { bottom: calc(84px + env(safe-area-inset-bott
 .mn_up_it .mn_ph em { font-size: 38px; }
 .mn_tpl:not([class*=" mn_t"]) .mn_cats a { display: inline-flex; align-items: center; gap: 6px; }
 .mn_tpl:not([class*=" mn_t"]) .mn_cats a i { font-style: normal; line-height: 1; }
+
+/* стоп-лист: тағам қазір жоқ */
+.mn_it_stop .mn_ph,.mn_it_stop img,.mn_it_stop .mn_it_b b,.mn_it_stop .mn_pr{opacity:.5;filter:grayscale(1)}
+.mn_stop{display:inline-block;padding:3px 10px;border-radius:10px;background:#fdecec;color:#c92a2a;font-size:12px;font-weight:700;white-space:nowrap}
+.mn_c_add:disabled{opacity:.5;filter:grayscale(1);cursor:not-allowed}

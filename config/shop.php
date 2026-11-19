@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/stop_list.php';
 // Online menu and QR menu: the company's dishes and ordering from them.
 // QR menu is this same site opened by another host (alias), e.g. qr.berik.c:
 // then the menu opens without login. Settings per company: company_menu (admin ▸ QR меню).
@@ -113,10 +114,20 @@ function food_icon(string ...$names): string {
 	return '🍽️';
 }
 
+// Тариф (config/plan.php): компания жабылса мәзір көрінеді, тек онлайн тапсырыс өшеді.
+// PLAN_ENFORCE = false болса ештеңе тексерілмейді (базаға сұрау да жоқ).
+function plan_order_off(int $cid): bool {
+	static $memo = [];
+	require_once __DIR__ . '/plan.php';
+	if (!PLAN_ENFORCE) return false;
+	if (!isset($memo[$cid])) { plan::load($cid); $memo[$cid] = plan::blocked('online'); }
+	return $memo[$cid];
+}
+
 // Order types this company takes from the menu: [type id => name]
 // 1 = Жеткізу, 2 = Өзі алып кету, 4 = Үстелге (кафе, тек QR үстел сілтемесімен)
 function menu_types(array $c, array $s, bool $table): array {
-	if (!$s['order_on']) return [];
+	if (!$s['order_on'] || plan_order_off((int)$c['id'])) return [];
 	if ($table) return ($s['table_on'] && (int)$c['coffee']) ? [4 => 'Үстелге'] : [];
 	$t = [];
 	if ($s['delivery_on'] && (int)$c['delivery']) $t[1] = 'Жеткізу';
@@ -162,6 +173,7 @@ function menu_items(int $cid): array {
 	foreach ($cats as $r) $out[(int)$r['id']] = ['name' => strip_tags((string)$r['name']), 'items' => [],
 		'img' => cat_img_url((string)($r['img'] ?? '')), 'icon' => (string)($r['icon'] ?? '')];
 	if (!$out) return [];
+	$stop = stop_ids($cid); // стоп-лист: «Жоқ» деп көрсетіледі, себетке салынбайды
 	$p = db()->query("SELECT id, catalog_id, COALESCE(NULLIF(name_kz, ''), name_ru) name, description, price, img FROM product
 		WHERE catalog_id IN (" . implode(',', array_keys($out)) . ") AND arh = 0 AND sale_online = 1 ORDER BY number IS NULL, number, name_kz");
 	foreach ($p as $r) {
@@ -173,6 +185,7 @@ function menu_items(int $cid): array {
 			'desc' => trim(strip_tags((string)$r['description'])),
 			'price' => $price,
 			'img' => img_url($r['img']),
+			'stop' => isset($stop[(int)$r['id']]) ? 1 : 0,
 		];
 	}
 	// Only starred dishes (the dish or its whole category, admin «Мәзір» ★). Nothing starred = the whole menu.
@@ -306,6 +319,7 @@ function place_order(array $c, array $in, ?array $me): array {
 	$cid = (int)$c['id'];
 	$s = menu_set($cid);
 	if (!$s['is_on']) throw new RuntimeException('Мәзір қазір жабық.');
+	if (plan_order_off($cid)) throw new RuntimeException('Онлайн тапсырыс уақытша қолжетімсіз.');
 	$table = (int)($in['table'] ?? 0);
 	$types = menu_types($c, $s, $table > 0);
 	$type = (int)($in['type'] ?? 0);
@@ -339,6 +353,8 @@ function place_order(array $c, array $in, ?array $me): array {
 		$food += $price * $q;
 	}
 	if (count($lines) !== count($want)) throw new RuntimeException('Кейбір тағам мәзірде жоқ. Бетті жаңартыңыз.');
+	$stop = stop_ids($cid);
+	foreach ($lines as $l) if (isset($stop[$l['id']])) throw new RuntimeException('«' . $l['name'] . '» қазір жоқ (стопта). Себеттен алып, қайта жіберіңіз.');
 
 	$phone = $me ? (string)$me['phone'] : phone10((string)($in['phone'] ?? ''));
 	$name = $me ? trim((string)$me['name']) : mb_substr(trim(strip_tags((string)($in['name'] ?? ''))), 0, 60);
