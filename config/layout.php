@@ -14,8 +14,8 @@ function head(string $title, string $tab = '', string $extra = '', string $brand
 <link rel="apple-touch-icon" href="/assets/img/logo/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap">
-<link rel="stylesheet" href="/assets/css/main.css?v=9">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/assets/css/main.css?v=10">
 <?= $extra ?>
 </head>
 <body<?= $tab === 'sign' ? ' class="sign"' : ($qr ? ' class="qr"' : ($me ? ' class="in"' : '')) ?>>
@@ -49,6 +49,7 @@ function foot(): void { ?>
 <script src="/assets/pl/jquery.min.js" defer></script>
 <script src="/assets/pl/jquery.mask.min.js" defer></script>
 <script src="/assets/js/phone.js?v=2" defer></script>
+<script src="/assets/js/tg.js?v=1" defer></script>
 </body>
 </html>
 <?php }
