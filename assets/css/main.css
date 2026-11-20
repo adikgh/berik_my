@@ -319,3 +319,8 @@ h2 { scroll-margin-top: 16px; }
 /* Unslop 2026-11-20: сандар бір енде, ₸ белгісі 75% */
 body { font-variant-numeric: tabular-nums; }
 .tg_sym { font-size: .75em; margin-left: .3em; }
+
+/* Unslop: мәзір жазуы қанығырақ (user 2026-11-20) */
+body .tabs a:not(.on):not(.tabs-brand){ color: #1c1f1d; font-weight: 500; }
+body .tabs a:not(.on):not(.tabs-brand) svg{ color: #3f4541; }
+body .tabs a.on{ color: var(--green); font-weight: 600; }
