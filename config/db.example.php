@@ -3,7 +3,7 @@
 // Without db.php the site uses the local OSPanel database.
 return [
 	'host' => 'localhost',
-	'name' => 'berik_004',
+	'name' => 'berik_005',
 	'user' => 'root',
 	'pass' => '',
 ];

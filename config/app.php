@@ -16,7 +16,7 @@ session_start();
 function db(): PDO {
 	static $pdo = null;
 	if ($pdo === null) {
-		$c = ['host' => 'localhost', 'name' => 'berik_004', 'user' => 'root', 'pass' => ''];
+		$c = ['host' => 'localhost', 'name' => 'berik_005', 'user' => 'root', 'pass' => ''];
 		if (is_file(__DIR__ . '/db.php')) {
 			$r = require __DIR__ . '/db.php';
 			// Two formats work: return ['host','name','user','pass'] (db.example.php)
