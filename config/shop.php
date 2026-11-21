@@ -11,6 +11,13 @@ function qr_mode(): bool {
 }
 
 // Dish photos live on the admin site
+// Тағам атауы экранға: бәрі экрандалады, тек админдағы <b class="cl_red">КОЛА</b> белгісі қызыл болып қалады
+function name_hl(string $s): string {
+	$s = e(trim(html_entity_decode(strip_tags($s, '<b>'), ENT_QUOTES, 'UTF-8')));
+	$s = preg_replace('~&lt;b class=&quot;cl_red&quot;&gt;(.*?)&lt;/b&gt;~u', '<span class="cl_red">$1</span>', $s);
+	return preg_replace('~&lt;/?b[^&]*&gt;~', '', $s);
+}
+
 function img_url(?string $img): string {
 	$img = (string)$img;
 	if ($img === '') return '';
@@ -182,6 +189,7 @@ function menu_items(int $cid): array {
 		$out[(int)$r['catalog_id']]['items'][] = [
 			'id' => (int)$r['id'],
 			'name' => trim(html_entity_decode(strip_tags((string)$r['name']), ENT_QUOTES, 'UTF-8')),
+			'nh' => name_hl((string)$r['name']),
 			'desc' => trim(strip_tags((string)$r['description'])),
 			'price' => $price,
 			'img' => img_url($r['img']),

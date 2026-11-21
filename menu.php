@@ -204,7 +204,7 @@ $media = function (array $i, string $cat) use ($tpl, $look): string {
 					<div class="mn_it<?= $i['stop'] ? ' mn_it_stop' : '' ?>"<?= $i['stop'] ? ' data-stop="1"' : '' ?> data-id="<?= $i['id'] ?>" data-cat="<?= $id ?>" data-name="<?= e($i['name']) ?>" data-price="<?= $i['price'] ?>" data-desc="<?= e($i['desc']) ?>" data-img="<?= $look['photos'] ? e($i['img']) : '' ?>" data-ico="<?= e(food_icon($i['name'], $k['name'])) ?>" data-h="<?= $i['id'] * 47 % 360 ?>">
 						<?= $media($i, $k['name']) ?>
 						<div class="mn_it_b">
-							<b><?= e($i['name']) ?></b>
+							<b><?= $i['nh'] ?></b>
 							<?php if ($i['desc'] !== ''): ?><small><?= e($i['desc']) ?></small><?php endif; ?>
 							<div class="row">
 								<span class="mn_pr"><?= money($i['price']) ?></span>
