@@ -298,8 +298,8 @@ function status_words(string $lang = 'kz'): array {
 require_once __DIR__ . '/shop.php';
 remember_company();
 
-// The QR host shows only the menu (and sign-in, so a client can enter his own account there too)
-if (qr_mode() && !in_array(basename((string)($_SERVER['SCRIPT_NAME'] ?? '')), ['menu.php', 'login.php', 'register.php', 'exit.php'], true)) {
+// The QR host shows only the menu (and sign-in, so a client can enter his own account there too), plus the Kaspi payment page and its webhook
+if (qr_mode() && !in_array(basename((string)($_SERVER['SCRIPT_NAME'] ?? '')), ['menu.php', 'login.php', 'register.php', 'exit.php', 'pay.php', 'xpay_hook.php'], true)) {
 	$qs = $_SERVER['QUERY_STRING'] ?? '';
 	header('Location: /menu.php' . ($qs !== '' ? '?' . $qs : ''));
 	exit;

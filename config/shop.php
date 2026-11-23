@@ -323,11 +323,13 @@ function tg_send(array $c, string $txt): void {
 
 // Places a menu order. $in: type, branch, table, items [id => qty], name, phone, address, floor_apt, zone, comment.
 // Returns [order id, number] or throws RuntimeException with a message for the client.
-function place_order(array $c, array $in, ?array $me): array {
+// $dry: only checks and counts, returns ['total', 'type'] without saving (Kaspi online: the order is saved after payment).
+// $force: the client has already paid, so «menu closed» and stop-list checks no longer stop the order.
+function place_order(array $c, array $in, ?array $me, bool $dry = false, bool $force = false): array {
 	$cid = (int)$c['id'];
 	$s = menu_set($cid);
-	if (!$s['is_on']) throw new RuntimeException('Мәзір қазір жабық.');
-	if (plan_order_off($cid)) throw new RuntimeException('Онлайн тапсырыс уақытша қолжетімсіз.');
+	if (!$s['is_on'] && !$force) throw new RuntimeException('Мәзір қазір жабық.');
+	if (plan_order_off($cid) && !$force) throw new RuntimeException('Онлайн тапсырыс уақытша қолжетімсіз.');
 	$table = (int)($in['table'] ?? 0);
 	$types = menu_types($c, $s, $table > 0);
 	$type = (int)($in['type'] ?? 0);
@@ -362,7 +364,7 @@ function place_order(array $c, array $in, ?array $me): array {
 	}
 	if (count($lines) !== count($want)) throw new RuntimeException('Кейбір тағам мәзірде жоқ. Бетті жаңартыңыз.');
 	$stop = stop_ids($cid);
-	foreach ($lines as $l) if (isset($stop[$l['id']])) throw new RuntimeException('«' . $l['name'] . '» қазір жоқ (стопта). Себеттен алып, қайта жіберіңіз.');
+	if (!$force) foreach ($lines as $l) if (isset($stop[$l['id']])) throw new RuntimeException('«' . $l['name'] . '» қазір жоқ (стопта). Себеттен алып, қайта жіберіңіз.');
 
 	$phone = $me ? (string)$me['phone'] : phone10((string)($in['phone'] ?? ''));
 	$name = $me ? trim((string)$me['name']) : mb_substr(trim(strip_tags((string)($in['name'] ?? ''))), 0, 60);
@@ -389,7 +391,8 @@ function place_order(array $c, array $in, ?array $me): array {
 	$note = mb_substr(trim(strip_tags((string)($in['comment'] ?? ''))), 0, 300);
 	$add = trim(($table ? 'Үстел ' . $table . '. ' : '') . ($name !== '' && !$me ? $name . '. ' : '') . $note);
 	$total = $food + $delivery;
-	$src = qr_mode() ? 'qr' : 'my';
+	$src = isset($in['src']) ? (string)$in['src'] : (qr_mode() ? 'qr' : 'my');
+	if ($dry) return ['total' => $total, 'type' => $type, 'table' => $table];
 
 	$db = db();
 	$db->beginTransaction();
@@ -425,7 +428,7 @@ function place_order(array $c, array $in, ?array $me): array {
 	$txt .= "\n<b>Тауарлар:</b>\n";
 	foreach ($lines as $l) $txt .= '• ' . $h($l['name']) . ': ' . $l['q'] . ' × ' . money($l['price']) . ' = ' . money($l['q'] * $l['price']) . "\n";
 	if ($delivery) $txt .= "\n<b>Жеткізу:</b> " . money($delivery);
-	$txt .= "\n<b>Жалпы:</b> " . money($total) . "\n<b>Төлем:</b> төленбеген";
+	$txt .= "\n<b>Жалпы:</b> " . money($total) . "\n<b>Төлем:</b> " . (isset($in['pay_txt']) ? $h($in['pay_txt']) : 'төленбеген');
 	tg_send($c, $txt);
 
 	return [$oid, $num];

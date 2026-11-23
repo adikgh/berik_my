@@ -60,7 +60,24 @@
 		}).join('');
 	}
 
+	// Kaspi prepay is only for delivery / takeaway: for a cafe or table order it is hidden and full payment is chosen
+	function drawPay() {
+		var ch = $('.mn_pay input:checked'), sb = $('.mn_send');
+		if (sb && $('.mn_pay')) sb.textContent = ch && ch.value === 'later' ? 'Тапсырыс беру' : 'Төлеу'; // Kaspi: the button pays
+		var pre = $('.mn_pay [data-pre]');
+		if (!pre) {
+			$$('.mn_po').forEach(function (l) { l.classList.toggle('on', $('input', l).checked); }); // for browsers without :has()
+			return;
+		}
+		var off = M.table > 0 || (type() !== 1 && type() !== 2) || food() + dlv() <= ((M.xpay && M.xpay.pre) || 0); // prepay bigger than the order makes no sense
+		pre.hidden = off;
+		var r = $('input', pre);
+		if (off && r.checked) { var o = $('.mn_pay label:not([data-pre]) input'); if (o) o.checked = true; }
+		$$('.mn_po').forEach(function (l) { l.classList.toggle('on', $('input', l).checked); }); // for browsers without :has()
+	}
+
 	function draw() {
+		drawPay();
 		var n = 0;
 		Object.keys(items).forEach(function (id) {
 			var q = cart[id] || 0; n += q;
@@ -228,6 +245,7 @@
 					btn.disabled = false;
 					if (!r.ok) { err.textContent = r.msg || 'Қате'; err.hidden = false; return; }
 					cart = {}; save(); draw(); close();
+					if (r.pay) { location.href = r.url; return; } // Kaspi online payment page
 					$('.mn_num', done).textContent = '№' + r.num;
 					$('.mn_link', done).href = r.url;
 					done.hidden = false;

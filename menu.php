@@ -4,6 +4,7 @@
 // Links: /menu.php?c=<company code>[&b=<branch id>][&t=<table no>]
 require_once __DIR__ . '/config/app.php';
 require_once __DIR__ . '/config/layout.php';
+require_once __DIR__ . '/config/xpay.php';
 
 $me = me();
 if ($me && !profile_done($me) && !qr_mode()) $me = null; // unfinished profile orders like a guest
@@ -30,9 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['send'])) {
 	if (!csrf_ok()) out(['ok' => false, 'msg' => 'Бетті жаңартып, қайта көріңіз.']);
 	if (!$c) out(['ok' => false, 'msg' => 'Мекеме табылмады.']);
 	if (too_many('order', 5)) out(['ok' => false, 'msg' => 'Тым көп тапсырыс. Сәл кейін көріңіз.']);
-	try {
-		[$oid, $num] = place_order($c, [
-			'type' => $_POST['type'] ?? 0,
+	$in = [
+		'type' => $_POST['type'] ?? 0,
 			'branch' => $_SESSION['menu_b'][(int)$c['id']] ?? ($_POST['branch'] ?? 0),
 			'table' => $table,
 			'items' => $_POST['items'] ?? [],
@@ -42,7 +42,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['send'])) {
 			'floor_apt' => $_POST['floor_apt'] ?? '',
 			'zone' => $_POST['zone'] ?? 0,
 			'comment' => $_POST['comment'] ?? '',
-		], $me);
+		];
+	// Kaspi online (xpayment): the order is saved only after payment (full or prepay); the client goes to the payment page
+	$xcfg = xpay_cfg((int)$c['id']);
+	$pay = (string)($_POST['pay'] ?? '');
+	if ($xcfg && ($pay !== 'later' || !xpay_opts($xcfg)['later'])) {
+		try {
+			$did = xpay_draft_new($xcfg, $c, $in, $me, $pay === 'pre' ? 'pre' : 'full');
+		} catch (RuntimeException $e) {
+			out(['ok' => false, 'msg' => $e->getMessage()]);
+		}
+		hit('order');
+		out(['ok' => true, 'pay' => 1, 'url' => '/pay.php?d=' . $did]);
+	}
+	try {
+		[$oid, $num] = place_order($c, $in, $me);
 	} catch (RuntimeException $e) {
 		out(['ok' => false, 'msg' => $e->getMessage()]);
 	}
@@ -154,6 +168,7 @@ $cfg = [
 	'card' => (int)$look['card'],
 	'upsell' => (int)$look['upsell'],
 	'upsell_ids' => menu_recommend((int)$c['id'], $cats),
+	'xpay' => ($xc = xpay_cfg((int)$c['id'])) ? xpay_opts($xc) : 0,
 ];
 
 $tpl = $look['tpl'];
@@ -293,10 +308,19 @@ $media = function (array $i, string $cat) use ($tpl, $look): string {
 			<div class="mn_tot">
 				<div class="row mn_dlv" data-t="1"><span>Жеткізу</span><span class="mn_dsum"></span></div>
 				<div class="row total"><span>Барлығы</span><span class="mn_total"></span></div>
-				<p class="muted small">Төлем тапсырысты алғанда (қолма-қол немесе Kaspi).</p>
+				<?php if ($cfg['xpay']): $xo = $cfg['xpay']; ?>
+					<div class="mn_pay" role="radiogroup" aria-label="Төлем">
+						<?php if ($xo['pre']): ?><label class="mn_po" data-pre="1"><input type="radio" name="pay" value="pre"<?= $xo['def'] === 'pre' ? ' checked' : '' ?>><span class="mn_po_t"><b>Предоплата</b><small><?= money($xo['pre']) ?> қазір, қалғаны кейін</small></span><i class="mn_po_c"></i></label><?php endif; ?>
+						<?php if ($xo['full']): ?><label class="mn_po"><input type="radio" name="pay" value="full"<?= $xo['def'] === 'full' ? ' checked' : '' ?>><span class="mn_po_t"><b>Толық төлеу</b><small>Бүкіл сома қазір</small></span><i class="mn_po_c"></i></label><?php endif; ?>
+						<?php if ($xo['later']): ?><label class="mn_po"><input type="radio" name="pay" value="later"<?= $xo['def'] === 'later' ? ' checked' : '' ?>><span class="mn_po_t"><b>Алғанда төлеймін</b><small>Қолма-қол не Kaspi</small></span><i class="mn_po_c"></i></label><?php endif; ?>
+					</div>
+					<p class="mn_pay_n"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Kaspi арқылы. Тапсырыс төлемнен кейін қабылданады.</p>
+				<?php else: ?>
+					<p class="muted small">Төлем тапсырысты алғанда (қолма-қол немесе Kaspi).</p>
+				<?php endif; ?>
 			</div>
 			<p class="alert mn_err" hidden></p>
-			<button type="submit">Тапсырыс беру</button>
+			<button type="submit" class="mn_send"><?= $cfg['xpay'] && $cfg['xpay']['def'] !== 'later' ? 'Төлеу' : 'Тапсырыс беру' ?></button>
 		</form>
 	</div>
 </div>

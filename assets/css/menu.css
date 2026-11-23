@@ -175,3 +175,18 @@ body:has(.mn_tpl .mn_nav) .mn_bar { bottom: calc(84px + env(safe-area-inset-bott
 .mn_stop{display:inline-block;padding:3px 10px;border-radius:10px;background:#fdecec;color:#c92a2a;font-size:12px;font-weight:700;white-space:nowrap}
 .mn_c_add:disabled{opacity:.5;filter:grayscale(1);cursor:not-allowed}
 .cl_red{color:#c92a2a}
+
+/* Kaspi online payment choice (xpayment): two option cards, the chosen one has the green ring */
+.mn_pay { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin: 14px 0 0; }
+.mn_po { position: relative; display: flex; align-items: center; gap: 10px; margin: 0; padding: 12px 14px; border: 1.5px solid #e6e9e7; border-radius: 14px; background: #fff; cursor: pointer; transition: border-color .15s, background .15s; -webkit-tap-highlight-color: transparent; }
+.mn_po[hidden] { display: none; }
+.mn_po input { position: absolute; opacity: 0; pointer-events: none; }
+.mn_po_t { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mn_po_t b { font-size: 15px; font-weight: 600; color: var(--text); }
+.mn_po_t small { font-size: 13px; color: var(--muted); line-height: 1.3; }
+.mn_po_c { flex: none; box-sizing: border-box; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #cfd5d2; transition: border-color .15s, box-shadow .15s; }
+.mn_po.on, .mn_po:has(input:checked) { border-color: var(--green); background: #f4fbf7; }
+.mn_po.on .mn_po_c, .mn_po:has(input:checked) .mn_po_c { border: 6px solid var(--green); }
+.mn_po:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 2px; }
+.mn_pay_n { display: flex; align-items: center; gap: 6px; margin: 10px 0 0; font-size: 13px; color: var(--muted); }
+.mn_pay_n svg { flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; }
