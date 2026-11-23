@@ -44,7 +44,26 @@ function source_col(): bool {
 	return $on;
 }
 
-// Company by its code from a link: ?c=n990 → company.code '#n990'
+// Public links use the company's own name (company.slug: ?c=yaki), not company.code.
+// company.code stays a secret for the cash desk and admin login.
+// Old links with the code (?c=y321, printed QR stickers) open and are sent on to the slug link
+// while OLD_CODE_LINKS is true. After the stickers are reprinted, set it to false.
+const OLD_CODE_LINKS = true;
+
+function slug_col(): bool {
+	static $on = null;
+	if ($on === null) {
+		$q = db()->query("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'company' AND COLUMN_NAME = 'slug'");
+		$on = (int)$q->fetchColumn() === 1;
+	}
+	return $on;
+}
+
+function slug_clean(string $s): string {
+	return trim(preg_replace('/[^a-z0-9-]+/', '', strtolower($s)), '-');
+}
+
+// Company by its code: ?c=n990 → company.code '#n990'
 function company_by_code(string $code): ?array {
 	$code = '#' . preg_replace('/[^a-z0-9]/', '', strtolower($code));
 	if ($code === '#') return null;
@@ -53,30 +72,83 @@ function company_by_code(string $code): ?array {
 	return $q->fetch() ?: null;
 }
 
+// Company by its public name: ?c=yaki → company.slug 'yaki'
+function company_by_slug(string $slug): ?array {
+	$slug = slug_clean($slug);
+	if ($slug === '' || !slug_col()) return null;
+	$q = db()->prepare('SELECT * FROM company WHERE slug = ? AND (end_dt IS NULL OR end_dt > NOW()) LIMIT 1');
+	$q->execute([$slug]);
+	return $q->fetch() ?: null;
+}
+
+// Company from a link value: the slug, else (old links) the code. $by_code tells which one matched.
+function company_by_link(string $v, bool &$by_code = false): ?array {
+	$by_code = false;
+	$c = company_by_slug($v);
+	if ($c || !(OLD_CODE_LINKS || !slug_col())) return $c;
+	$c = company_by_code($v);
+	$by_code = (bool)$c;
+	return $c;
+}
+
 function company_by_id(int $id): ?array {
 	$q = db()->prepare('SELECT * FROM company WHERE id = ? AND (end_dt IS NULL OR end_dt > NOW())');
 	$q->execute([$id]);
 	return $q->fetch() ?: null;
 }
 
-function code_of(array $c): string {
-	return ltrim(strtolower((string)$c['code']), '#');
+// Latin letters for a company name: «Яки» → yaki
+function slug_from_name(string $name): string {
+	$map = ['а'=>'a','ә'=>'a','б'=>'b','в'=>'v','г'=>'g','ғ'=>'g','д'=>'d','е'=>'e','ё'=>'e','ж'=>'zh','з'=>'z','и'=>'i','й'=>'i',
+		'к'=>'k','қ'=>'q','л'=>'l','м'=>'m','н'=>'n','ң'=>'n','о'=>'o','ө'=>'o','п'=>'p','р'=>'r','с'=>'s','т'=>'t','у'=>'u',
+		'ұ'=>'u','ү'=>'u','ф'=>'f','х'=>'h','һ'=>'h','ц'=>'ts','ч'=>'ch','ш'=>'sh','щ'=>'sh','ъ'=>'','ы'=>'y','і'=>'i','ь'=>'',
+		'э'=>'e','ю'=>'yu','я'=>'ya'];
+	$s = strtr(mb_strtolower($name, 'UTF-8'), $map);
+	$s = trim(preg_replace('/[^a-z0-9]+/', '-', $s), '-');
+	return substr($s, 0, 30);
 }
 
-// Remember the company the client came through (link ?c=<code>), for a year
+// The company's public link name. A company without one gets it made from its name and saved.
+function slug_of(array $c): string {
+	if (!slug_col()) return ltrim(strtolower((string)$c['code']), '#'); // column not added yet: old behaviour
+	if (!empty($c['slug'])) return (string)$c['slug'];
+	$base = slug_from_name((string)$c['name']);
+	if (strlen($base) < 3) $base = 'menu' . (int)$c['id'];
+	$taken = db()->prepare("SELECT COUNT(*) FROM company WHERE id <> ? AND (slug = ? OR LOWER(code) = CONCAT('#', ?))");
+	for ($i = 1, $s = $base; ; $s = $base . '-' . ++$i) {
+		$taken->execute([(int)$c['id'], $s, $s]);
+		if (!(int)$taken->fetchColumn()) break;
+	}
+	db()->prepare("UPDATE company SET slug = ? WHERE id = ? AND (slug IS NULL OR slug = '')")->execute([$s, (int)$c['id']]);
+	$q = db()->prepare('SELECT slug FROM company WHERE id = ?');
+	$q->execute([(int)$c['id']]);
+	return (string)$q->fetchColumn();
+}
+
+// Remember the company the client came through (link ?c=<slug>), for a year.
+// An old link with the code is sent on to the same address with the slug.
 function remember_company(): void {
 	if (!isset($_GET['c'])) return;
-	$c = company_by_code((string)$_GET['c']);
+	$by_code = false;
+	$c = company_by_link((string)$_GET['c'], $by_code);
 	if (!$c) return;
 	$_SESSION['menu_c'] = (int)$c['id'];
-	setcookie('menu_c', code_of($c), ['expires' => time() + 3600 * 24 * 365, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
+	$slug = slug_of($c);
+	setcookie('menu_c', $slug, ['expires' => time() + 3600 * 24 * 365, 'path' => '/', 'httponly' => true, 'samesite' => 'Lax']);
+	if ($by_code && slug_col() && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+		$qs = $_GET;
+		$qs['c'] = $slug;
+		$path = strtok((string)($_SERVER['REQUEST_URI'] ?? '/'), '?');
+		header('Location: ' . $path . '?' . http_build_query($qs), true, 301);
+		exit;
+	}
 }
 
 // The company whose menu is shown now
 function current_company(): ?array {
 	if (!empty($_SESSION['menu_c'])) return company_by_id((int)$_SESSION['menu_c']);
 	if (!empty($_COOKIE['menu_c'])) {
-		$c = company_by_code((string)$_COOKIE['menu_c']);
+		$c = company_by_slug((string)$_COOKIE['menu_c']) ?: company_by_code((string)$_COOKIE['menu_c']); // code: cookie from before the slug
 		if ($c) { $_SESSION['menu_c'] = (int)$c['id']; return $c; }
 	}
 	return null;

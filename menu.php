@@ -1,7 +1,7 @@
 <?php
 // Company menu with ordering. In the cabinet it is the "Мәзір" tab;
 // on the QR host (qr.*) it is the whole site and needs no login.
-// Links: /menu.php?c=<company code>[&b=<branch id>][&t=<table no>]
+// Links: /menu.php?c=<company slug>[&b=<branch id>][&t=<table no>]
 require_once __DIR__ . '/config/app.php';
 require_once __DIR__ . '/config/layout.php';
 require_once __DIR__ . '/config/xpay.php';
@@ -9,7 +9,7 @@ require_once __DIR__ . '/config/xpay.php';
 $me = me();
 if ($me && !profile_done($me) && !qr_mode()) $me = null; // unfinished profile orders like a guest
 $c = current_company();
-if ($c && !empty($_GET['c']) && code_of($c) !== preg_replace('/[^a-z0-9]/', '', strtolower((string)$_GET['c']))) $c = null;
+if ($c && !empty($_GET['c']) && slug_of($c) !== slug_clean((string)$_GET['c'])) $c = null;
 $s = $c ? menu_set((int)$c['id']) : null;
 // A remembered place whose menu is off: show the list of open ones instead
 if ($c && !$s['is_on'] && empty($_GET['c'])) { $c = null; $s = null; }
@@ -105,13 +105,13 @@ if (!$c) {
 	$places = [];
 	if (menu_on()) {
 		$mine = $me ? my_clients((int)$me['id']) : '0';
-		$places = db()->query("SELECT c.id, c.name, c.code, c.city,
+		$places = db()->query("SELECT c.*,
 				(SELECT MAX(cc.last_dt) FROM company_client cc WHERE cc.company_id = c.id AND cc.id IN ($mine)) mine
 			FROM company c JOIN company_menu m ON m.company_id = c.id AND m.is_on = 1
 			WHERE c.end_dt IS NULL OR c.end_dt > NOW()
 			ORDER BY mine IS NULL, mine DESC, c.number, c.id")->fetchAll();
 	}
-	if (count($places) === 1) { header('Location: /menu.php?c=' . rawurlencode(code_of($places[0]))); exit; }
+	if (count($places) === 1) { header('Location: /menu.php?c=' . rawurlencode(slug_of($places[0]))); exit; }
 	head('Мәзір', 'menu');
 	?>
 	<h1>Мәзір</h1>
@@ -119,7 +119,7 @@ if (!$c) {
 		<p class="muted">Мекемені таңдаңыз</p>
 		<ul class="card list">
 			<?php foreach ($places as $p): ?>
-				<li><a href="/menu.php?c=<?= e(code_of($p)) ?>"><?= e($p['name']) ?></a><b><?= e(ucfirst((string)$p['city'])) ?></b></li>
+				<li><a href="/menu.php?c=<?= e(rawurlencode(slug_of($p))) ?>"><?= e($p['name']) ?></a><b><?= e(ucfirst((string)$p['city'])) ?></b></li>
 			<?php endforeach; ?>
 		</ul>
 	<?php else: ?>
