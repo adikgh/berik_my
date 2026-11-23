@@ -2,8 +2,8 @@
 require_once __DIR__ . '/config/app.php';
 require_once __DIR__ . '/config/layout.php';
 
-// Came by a company link (?c=<code>): open that company's menu
-if (isset($_GET['c']) && current_company()) { header('Location: /menu.php'); exit; }
+// Came by a company link (?c=<slug>[&b=..][&t=..]): open that company's menu, keeping the table and branch
+if (isset($_GET['c']) && current_company()) { header('Location: /menu.php?' . http_build_query($_GET)); exit; }
 
 $me = need_login();
 $mc = current_company();
