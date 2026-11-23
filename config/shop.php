@@ -372,8 +372,11 @@ function client_for(int $cid, string $phone, string $name, string $addr, string 
 }
 
 // Telegram to the company chat (company.chat_send / chat_id, the same group as the kassa).
-// The bot token is in this site's own config/tg.php (not in git): <?php return '123:ABC';
+// The bot token is in the database (sys_setting.tg_token, set in dev ▸ Telegram bot). Old config/tg.php is only a fallback.
 function tg_token(): string {
+	require_once __DIR__ . '/sys_set.php';
+	$t = (string)sys_set('tg_token');
+	if ($t !== '') return $t;
 	$f = __DIR__ . '/tg.php';
 	if (!is_file($f)) return '';
 	$t = require $f;
@@ -383,7 +386,7 @@ function tg_token(): string {
 function tg_send(array $c, string $txt): void {
 	if ((int)$c['chat_send'] !== 1 || empty($c['chat_id']) || !function_exists('curl_init')) return;
 	$token = tg_token();
-	if ($token === '') { error_log('telegram: my config/tg.php is missing'); return; }
+	if ($token === '') { error_log('telegram: no bot token (dev ▸ Telegram bot)'); return; }
 	$ch = curl_init('https://api.telegram.org/bot' . $token . '/sendMessage');
 	curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_CONNECTTIMEOUT => 5, CURLOPT_TIMEOUT => 10, CURLOPT_POST => true,
 		CURLOPT_POSTFIELDS => ['chat_id' => $c['chat_id'], 'parse_mode' => 'html', 'text' => $txt]]);
