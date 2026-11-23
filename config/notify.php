@@ -7,9 +7,11 @@
 //   'admin'    - the shared WhatsApp setting from the admin site (adm.berik.c/config/wa_conf.php, page /wa/)
 const NOTIFY_CHANNEL = 'admin';
 
-const SMSC_LOGIN = '';
-const SMSC_PASSWORD = '';
-const SMSC_SENDER = '';
+// SMSC login, password and sender: DB sys_setting (dev ▸ Кілттер ▸ SMSC)
+require_once __DIR__ . '/sys_set.php';
+define('SMSC_LOGIN', sys_set('smsc_login'));
+define('SMSC_PASSWORD', sys_set('smsc_password'));
+define('SMSC_SENDER', sys_set('smsc_sender'));
 
 const WA_API_URL = 'https://api.green-api.com';
 const WA_INSTANCE = '';

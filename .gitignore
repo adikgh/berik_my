@@ -6,7 +6,6 @@
 /config/wa_conf.php
 /config/map_key.php
 /config/smsc_api.php
-/config/client_link.php
 /config/tg.php
 *.bak_*
 *.sql
@@ -15,3 +14,4 @@
 !/assets/uploads/users/
 /assets/uploads/users/*
 !/assets/uploads/users/Sample_User_Icon.png
+/config/client_link_secret.php

@@ -13,18 +13,18 @@ function code_on(): bool {
 	return NOTIFY_CHANNEL === 'admin' && notify_admin() && function_exists('wa_login_on') && wa_login_on(code_site());
 }
 
-// Secret for the device cookie: config/auth_key.php (not in git), made on first use
+// Secret for the device cookie: DB sys_setting.auth_key_my (dev ▸ Кілттер), else the old config/auth_key.php; made on first use and saved to the DB
 function code_key(): string {
 	static $k = null;
-	if ($k === null) {
-		$f = __DIR__ . '/auth_key.php';
-		$k = is_file($f) ? (string)(include $f) : '';
-		if (strlen($k) < 32) {
-			$k = bin2hex(random_bytes(32));
-			@file_put_contents($f, "<?php\n// Device cookie secret (my.berik.c). Not in git. Made automatically.\nreturn '" . $k . "';\n", LOCK_EX);
-		}
+	if ($k !== null) return $k;
+	require_once __DIR__ . '/sys_set.php';
+	$v = sys_set('auth_key_my');
+	if (strlen($v) < 32) { $f = __DIR__ . '/auth_key.php'; $v = is_file($f) ? (string)(include $f) : ''; }
+	if (strlen($v) < 32 && strlen($v = sys_set_all(true)['auth_key_my'] ?? '') < 32) {
+		$v = bin2hex(random_bytes(32));
+		if (!sys_set_put('auth_key_my', $v)) return $v; // no DB: not cached, the cookie will not pass next time
 	}
-	return $k;
+	return $k = $v;
 }
 
 // Signature ties the cookie to the user and his current password: a new password asks the code again
